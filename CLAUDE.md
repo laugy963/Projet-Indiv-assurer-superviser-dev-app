@@ -20,6 +20,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 - `README.md` — objet, tableau « Avancement » des 9 étapes, arborescence
 - `docs/01-cadrage.md` — périmètre, décisions, contraintes, questions ouvertes, risques
 - `docs/02-processus-developpement.md` — indicateurs I1 à I4, cycle DevSecOps, jobs du pipeline, stratégie de tests ; `docs/02-competences-et-formation.md` — cartographie, recrutement, formation
+- `docs/03-exigences-et-backlog.md` — exigences EF et ENF, user stories US-01 à US-06, critères d'acceptation CA-01 à CA-19 ; `docs/03-architecture.md` — composants, API, événement, données, sécurité, limites du prototype
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
 - `docs/journal.md` — journal de bord : actions réellement menées et leurs résultats
@@ -47,7 +48,10 @@ Les fiches ADR font foi ; ceci n'est qu'un résumé.
 - Hébergement : k3d en local, k3s sur une VM en Europe ; repli Kubernetes managé européen (ADR 0003).
 - CI/CD : GitHub Actions, dépôt public, SonarQube Cloud (ADR 0004) ; GitHub flow, `main` protégée à partir de l'étape 6 (ADR 0006).
 - Tests : Jest + Supertest (unitaires, intégration, acceptation), k6 pour la charge (ADR 0005). Contrôles de sécurité du pipeline : Semgrep, Gitleaks, Trivy.
-- Cible de départ, à confirmer à l'étape 3 : broker de messages, PostgreSQL, Keycloak (rôles membre / modérateur), Ingress Traefik + cert-manager (HTTPS), Prometheus + Grafana, HPA.
+- Communication entre services : RabbitMQ, exchange topic `annonces`, événement `annonce.publiee` ; aucun appel direct entre les deux services (ADR 0007).
+- Données : PostgreSQL, une instance, une base et un compte par service, TypeORM, migrations versionnées (ADR 0008).
+- Sécurité : Keycloak, OpenID Connect, rôles `membre` et `moderateur`, jeton vérifié dans chaque service (ADR 0009).
+- Exposition : API REST en HTTPS, Ingress Traefik, cert-manager (ADR 0010). Observabilité : Prometheus + Grafana (ADR 0011). Mise à l'échelle : HPA.
 - Poste : MacBook Pro M1, 8 Go, arm64. Chaque composant ajouté au cluster local coûte de la mémoire ; images construites pour arm64 et amd64.
 
 ## Commandes

@@ -16,7 +16,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 |---|---|---|
 | 1 | Cadrage | Terminée |
 | 2 | Processus de développement | Terminée |
-| 3 | Exigences et architecture | À faire |
+| 3 | Exigences et architecture | En attente de validation |
 | 4 | Bac à sable | À faire |
 | 5 | Développement du prototype | À faire |
 | 6 | Pipeline CI/CD | À faire |
@@ -43,6 +43,8 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── 01-cadrage.md      périmètre, décisions, risques, questions ouvertes
     ├── 02-processus-developpement.md   indicateurs, cycle DevSecOps, CI/CD, stratégie de tests
     ├── 02-competences-et-formation.md  cartographie, écarts, recrutement, formation
+    ├── 03-exigences-et-backlog.md      exigences, user stories, critères d'acceptation
+    ├── 03-architecture.md              composants, flux, données, sécurité, limites
     ├── retroplanning.md   calendrier jusqu'à la soutenance
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
@@ -56,9 +58,11 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 1. [Cadrage](docs/01-cadrage.md)
 2. [Processus de développement](docs/02-processus-developpement.md), avec les schémas du [cycle DevSecOps](docs/schemas/cycle-devsecops.md) et du [pipeline CI/CD](docs/schemas/pipeline-ci-cd.md)
 3. [Compétences et formation](docs/02-competences-et-formation.md)
-4. [Fiches de décision](docs/adr/README.md)
-5. [Rétroplanning](docs/retroplanning.md)
-6. [Journal de bord](docs/journal.md)
+4. [Exigences et backlog](docs/03-exigences-et-backlog.md)
+5. [Architecture technique](docs/03-architecture.md), avec son [schéma](docs/schemas/architecture-technique.md)
+6. [Fiches de décision](docs/adr/README.md)
+7. [Rétroplanning](docs/retroplanning.md)
+8. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 

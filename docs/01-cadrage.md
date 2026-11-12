@@ -35,6 +35,11 @@ Hors périmètre, cité pour mémoire : vente en ligne et paiement, abonnement e
 | 4 | CI/CD et qualité | GitHub Actions, dépôt public, SonarQube Cloud | Acceptée | [0004](adr/0004-ci-cd-et-analyse-qualite.md) |
 | 5 | Outils de test | Jest et Supertest, k6 pour la charge | Acceptée | [0005](adr/0005-outils-de-test.md) |
 | 6 | Flux de branches | GitHub flow, `main` protégée | Acceptée | [0006](adr/0006-flux-de-branches.md) |
+| 7 | Broker de messages | RabbitMQ, exchange de type topic | Acceptée | [0007](adr/0007-broker-de-messages.md) |
+| 8 | Persistance | PostgreSQL, une instance, une base par service, TypeORM | Acceptée | [0008](adr/0008-persistance.md) |
+| 9 | Authentification et autorisation | Keycloak, OpenID Connect, jeton vérifié dans chaque service | Acceptée | [0009](adr/0009-authentification-et-autorisation.md) |
+| 10 | Exposition | API REST en HTTPS, Ingress Traefik, cert-manager | Acceptée | [0010](adr/0010-exposition-et-https.md) |
+| 11 | Observabilité | Métriques avec Prometheus et Grafana | Acceptée | [0011](adr/0011-observabilite.md) |
 
 Organisation du code : un seul dépôt pour les deux services, les manifestes et la documentation. Un prototype tenu par une seule personne y gagne un pipeline unique et des modifications cohérentes entre services. L'alternative, un dépôt par service, se justifiera quand plusieurs équipes livreront à des rythmes différents.
 
@@ -54,6 +59,7 @@ Organisation du code : un seul dépôt pour les deux services, les manifestes et
 | Question | Destinataire | Échéance | Conséquence |
 |---|---|---|---|
 | La grille demande un « environnement managé ». Un k3s installé sur une machine virtuelle suffit-il, ou faut-il un service Kubernetes opéré par un fournisseur ? | Intervenant | 20 décembre 2026 | Si un service managé est exigé : option de repli de la fiche 0003 |
+| Quel nom de domaine pour l'environnement de démonstration ? Un certificat d'une autorité publique en demande un (fiche 0010) | Moi | 28 février 2027 | Sans nom de domaine : certificat auto-signé sur l'environnement distant |
 
 Question tranchée le 12 novembre 2026 : je dispose d'environ 2 heures par jour pour le projet, week-ends compris. Le rétroplanning est recalé sur cette base.
 

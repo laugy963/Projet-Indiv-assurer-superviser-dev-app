@@ -40,7 +40,7 @@ Disponibilité : environ 2 heures par jour, week-ends compris (précisée le 12 
 |---|---|---|
 | 20 décembre 2026 | Réponse de l'intervenant sur l'« environnement managé » | 7 (choix de l'environnement cible) |
 | 3 janvier 2027 | Comptes et accès prêts : SonarQube Cloud relié au dépôt, moteur de conteneurs et k3d installés sur le poste | 4 (bac à sable) |
-| 28 février 2027 | Environnement cible commandé (machine virtuelle ou Kubernetes managé) | 7 (déploiement) |
+| 28 février 2027 | Environnement cible commandé (machine virtuelle ou Kubernetes managé) ; nom de domaine réservé pour le certificat HTTPS | 7 (déploiement) |
 | 5 avril 2027 | Gel du code, vidéo de secours enregistrée | Soutenance |
 
 ## Diagramme de Gantt
