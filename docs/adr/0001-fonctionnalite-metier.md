@@ -1,6 +1,6 @@
 # 0001 — Fonctionnalité métier du prototype
 
-- Statut : proposée, à valider
+- Statut : acceptée le 12 novembre 2026
 - Date : 10 novembre 2026
 
 ## Contexte

@@ -14,7 +14,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 
 | Étape | Contenu | Statut |
 |---|---|---|
-| 1 | Cadrage | En attente de validation |
+| 1 | Cadrage | Terminée |
 | 2 | Processus de développement | À faire |
 | 3 | Exigences et architecture | À faire |
 | 4 | Bac à sable | À faire |

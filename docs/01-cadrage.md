@@ -2,7 +2,7 @@
 
 - Date : 10 novembre 2026
 - Soutenance : 13 et 14 avril 2027 (20 minutes de présentation, 15 minutes de questions)
-- Statut : en attente de validation
+- Statut : validé le 12 novembre 2026
 
 ## 1. Mission
 
@@ -29,7 +29,7 @@ Hors périmètre, cité pour mémoire : vente en ligne et paiement, abonnement e
 
 | # | Sujet | Décision | Statut | Fiche |
 |---|---|---|---|---|
-| 1 | Fonctionnalité métier | Annonce de troc ou de don, notification des membres intéressés | À valider | [0001](adr/0001-fonctionnalite-metier.md) |
+| 1 | Fonctionnalité métier | Annonce de troc ou de don, notification des membres intéressés | Acceptée | [0001](adr/0001-fonctionnalite-metier.md) |
 | 2 | Back-end | Node.js, TypeScript, NestJS | Acceptée | [0002](adr/0002-stack-back-end.md) |
 | 3 | Hébergement | k3d en local, puis k3s sur une machine virtuelle en Europe | Acceptée sous réserve | [0003](adr/0003-hebergement-et-orchestration.md) |
 | 4 | CI/CD et qualité | GitHub Actions, dépôt public, SonarQube Cloud | Acceptée | [0004](adr/0004-ci-cd-et-analyse-qualite.md) |
@@ -52,7 +52,8 @@ Organisation du code : un seul dépôt pour les deux services, les manifestes et
 | Question | Destinataire | Échéance | Conséquence |
 |---|---|---|---|
 | La grille demande un « environnement managé ». Un k3s installé sur une machine virtuelle suffit-il, ou faut-il un service Kubernetes opéré par un fournisseur ? | Intervenant | 20 décembre 2026 | Si un service managé est exigé : option de repli de la fiche 0003 |
-| Combien d'heures par semaine puis-je consacrer au projet ? | Moi | Dès maintenant | Calibrage du rétroplanning |
+
+Question tranchée le 12 novembre 2026 : je dispose d'environ 2 heures par jour pour le projet, week-ends compris. Le rétroplanning est recalé sur cette base.
 
 ## 6. Risques du projet
 
@@ -66,4 +67,4 @@ Organisation du code : un seul dépôt pour les deux services, les manifestes et
 
 ## 7. Suite
 
-Le calendrier est dans le [rétroplanning](retroplanning.md). L'étape 2 commence après validation de ce cadrage.
+Le calendrier est dans le [rétroplanning](retroplanning.md). Le cadrage est validé depuis le 12 novembre 2026 : l'étape 2 peut commencer.
