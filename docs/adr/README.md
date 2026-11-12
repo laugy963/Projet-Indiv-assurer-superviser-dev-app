@@ -8,3 +8,5 @@ Une fiche par décision structurante : le contexte, la décision, les alternativ
 | [0002](0002-stack-back-end.md) | Back-end : Node.js, TypeScript, NestJS | Acceptée |
 | [0003](0003-hebergement-et-orchestration.md) | Hébergement : k3d en local, k3s sur une machine virtuelle en Europe | Acceptée sous réserve |
 | [0004](0004-ci-cd-et-analyse-qualite.md) | CI/CD : GitHub Actions, dépôt public, SonarQube Cloud | Acceptée |
+| [0005](0005-outils-de-test.md) | Outils de test : Jest et Supertest, k6 pour la charge | Acceptée |
+| [0006](0006-flux-de-branches.md) | Flux de branches : GitHub flow, `main` protégée | Acceptée |

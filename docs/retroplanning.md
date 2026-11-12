@@ -45,30 +45,23 @@ Disponibilité : environ 2 heures par jour, week-ends compris (précisée le 12 
 
 ## Diagramme de Gantt
 
-```mermaid
-gantt
-    title Rétroplanning jusqu'à la soutenance des 13 et 14 avril 2027
-    dateFormat YYYY-MM-DD
-    axisFormat %d/%m
-    tickInterval 2week
+![Diagramme de Gantt du rétroplanning : une colonne par semaine, de la semaine 1 à la soutenance](schemas/retroplanning.png)
 
-    section Phase 1
-    1. Cadrage                          :e1, 2026-11-10, 2026-11-16
-    2. Processus de développement       :e2, 2026-11-16, 2026-12-07
+Source modifiable : [schemas/retroplanning.drawio](schemas/retroplanning.drawio), à ouvrir avec draw.io.
 
-    section Phase 2
-    3. Exigences et architecture        :e3, 2026-12-07, 2026-12-21
-    Marge (fêtes)                       :m1, 2026-12-21, 2027-01-04
-    4. Bac à sable                      :e4, 2027-01-04, 2027-01-25
-    5. Développement du prototype       :e5, 2027-01-25, 2027-02-15
-    6. Pipeline CI/CD                   :e6, 2027-02-15, 2027-03-01
-    7. Déploiement, observabilité, charge :e7, 2027-03-01, 2027-03-15
+| Élément | Sens |
+|---|---|
+| Colonne | Une semaine, du lundi au dimanche. La date affichée est celle du premier jour ; la semaine 1 commence le mardi 10 novembre |
+| Barre | Une étape. Le chiffre est son budget en heures |
+| Barre grise en pointillés | Marge des fêtes de fin d'année |
+| Barre rouge | Gel du code |
+| Losange rouge | Soutenance |
+| Losange jaune et trait pointillé | Échéance qui conditionne la suite (tableau ci-dessus) |
 
-    section Phase 3
-    8. Audit et remédiation             :e8, 2027-03-15, 2027-03-22
+Mise à jour : déplacer ou étirer les barres dans draw.io (une semaine fait 50 points, la grille en fait 10), puis régénérer l'image depuis la racine du dépôt :
 
-    section Soutenance
-    9. Préparation de la soutenance     :e9, 2027-03-22, 2027-04-05
-    Gel du code et répétitions          :crit, g1, 2027-04-05, 2027-04-13
-    Soutenance                          :milestone, s1, 2027-04-13, 0d
+```bash
+/Applications/draw.io.app/Contents/MacOS/draw.io -x -f png -s 2 -b 10 -o docs/schemas/retroplanning.png docs/schemas/retroplanning.drawio
 ```
+
+Export vérifié le 12 novembre 2026 avec draw.io 29.6.1.

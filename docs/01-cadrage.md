@@ -33,6 +33,8 @@ Hors périmètre, cité pour mémoire : vente en ligne et paiement, abonnement e
 | 2 | Back-end | Node.js, TypeScript, NestJS | Acceptée | [0002](adr/0002-stack-back-end.md) |
 | 3 | Hébergement | k3d en local, puis k3s sur une machine virtuelle en Europe | Acceptée sous réserve | [0003](adr/0003-hebergement-et-orchestration.md) |
 | 4 | CI/CD et qualité | GitHub Actions, dépôt public, SonarQube Cloud | Acceptée | [0004](adr/0004-ci-cd-et-analyse-qualite.md) |
+| 5 | Outils de test | Jest et Supertest, k6 pour la charge | Acceptée | [0005](adr/0005-outils-de-test.md) |
+| 6 | Flux de branches | GitHub flow, `main` protégée | Acceptée | [0006](adr/0006-flux-de-branches.md) |
 
 Organisation du code : un seul dépôt pour les deux services, les manifestes et la documentation. Un prototype tenu par une seule personne y gagne un pipeline unique et des modifications cohérentes entre services. L'alternative, un dépôt par service, se justifiera quand plusieurs équipes livreront à des rythmes différents.
 

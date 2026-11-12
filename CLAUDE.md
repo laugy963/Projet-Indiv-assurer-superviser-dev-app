@@ -19,6 +19,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 
 - `README.md` — objet, tableau « Avancement » des 9 étapes, arborescence
 - `docs/01-cadrage.md` — périmètre, décisions, contraintes, questions ouvertes, risques
+- `docs/02-processus-developpement.md` — indicateurs I1 à I4, cycle DevSecOps, jobs du pipeline, stratégie de tests ; `docs/02-competences-et-formation.md` — cartographie, recrutement, formation
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
 - `docs/journal.md` — journal de bord : actions réellement menées et leurs résultats
@@ -42,15 +43,19 @@ Avancement : ne pas le déduire de ce fichier. Le lire dans `README.md` (tableau
 Les fiches ADR font foi ; ceci n'est qu'un résumé.
 
 - Fonctionnalité : un membre publie une annonce de troc ou de don ; les membres aux centres d'intérêt correspondants sont notifiés (ADR 0001).
-- Back-end : Node.js LTS, TypeScript, NestJS ; tests pressentis Jest + Supertest (ADR 0002).
+- Back-end : Node.js LTS, TypeScript, NestJS (ADR 0002).
 - Hébergement : k3d en local, k3s sur une VM en Europe ; repli Kubernetes managé européen (ADR 0003).
-- CI/CD : GitHub Actions, dépôt public, SonarQube Cloud (ADR 0004).
-- Cible de départ, à confirmer à l'étape 3 : broker de messages, PostgreSQL, Keycloak (rôles membre / modérateur), Ingress Traefik + cert-manager (HTTPS), Prometheus + Grafana, HPA, test de charge JMeter / Siege / k6.
+- CI/CD : GitHub Actions, dépôt public, SonarQube Cloud (ADR 0004) ; GitHub flow, `main` protégée à partir de l'étape 6 (ADR 0006).
+- Tests : Jest + Supertest (unitaires, intégration, acceptation), k6 pour la charge (ADR 0005). Contrôles de sécurité du pipeline : Semgrep, Gitleaks, Trivy.
+- Cible de départ, à confirmer à l'étape 3 : broker de messages, PostgreSQL, Keycloak (rôles membre / modérateur), Ingress Traefik + cert-manager (HTTPS), Prometheus + Grafana, HPA.
 - Poste : MacBook Pro M1, 8 Go, arm64. Chaque composant ajouté au cluster local coûte de la mémoire ; images construites pour arm64 et amd64.
 
 ## Commandes
 
-Aucune pour l'instant : le code arrive à l'étape 5. Les ajouter ici (install, lint, test, build, déploiement) dès qu'elles existent et ont été exécutées avec succès.
+Le code arrive à l'étape 5. Ajouter ici les commandes (install, lint, test, build, déploiement) dès qu'elles existent et ont été exécutées avec succès.
+
+- Exporter un schéma draw.io en image, depuis la racine du dépôt (exécutée le 12 novembre 2026, draw.io 29.6.1) :
+  `/Applications/draw.io.app/Contents/MacOS/draw.io -x -f png -s 2 -b 10 -o docs/schemas/<nom>.png docs/schemas/<nom>.drawio`
 
 ## Règles non négociables
 
@@ -69,7 +74,7 @@ Aucune pour l'instant : le code arrive à l'étape 5. Les ajouter ici (install, 
 - Français, phrases courtes, tableaux plutôt que prose, pas d'emoji.
 - Définir chaque terme technique à sa première apparition (après deux-points ou entre parenthèses).
 - Vocabulaire précis : le jury n'accepte pas le « je sais faire mais pas expliqué ».
-- Schémas en Mermaid (ou draw.io) dans `docs/schemas/` ; vérifier que le rendu fonctionne.
+- Schémas en draw.io (choix de l'étudiant, le 12 novembre 2026), jamais en Mermaid. Pour chaque schéma, trois fichiers de même nom dans `docs/schemas/` : la source `.drawio`, l'export `.png`, et un `.md` qui affiche l'image avec sa légende. Après chaque modification, régénérer l'export (voir Commandes) et relire l'image. Le diagramme de Gantt (`docs/schemas/retroplanning.drawio`) est affiché dans `docs/retroplanning.md` ; ses barres sont à recaler si le calendrier change.
 - ADR : `docs/adr/NNNN-kebab-case.md`, en-tête Statut + Date, sections Contexte / Décision / Pourquoi ce choix / Alternatives écartées / Conséquences. Mettre à jour `docs/adr/README.md` et le tableau « Décisions » de `docs/01-cadrage.md`.
 - Dates en toutes lettres dans les documents (10 novembre 2026), au format ISO dans le journal (2026-11-10).
 - Mettre à jour le tableau « Avancement » de `README.md` à chaque fin d'étape.
