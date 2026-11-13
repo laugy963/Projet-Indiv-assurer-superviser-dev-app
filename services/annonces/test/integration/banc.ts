@@ -29,9 +29,10 @@ export interface Banc {
 }
 
 export async function demarrerBanc(): Promise<Banc> {
+  const acces = variablesDuService('annonces');
   const emetteur = await EmetteurDeTest.demarrer();
   const reglages = lireReglages({
-    ...variablesDuService('annonces'),
+    ...acces,
     PORT: '0',
     OIDC_EMETTEUR: emetteur.emetteur,
     OIDC_URL_CLES: emetteur.urlCles,

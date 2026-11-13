@@ -1,17 +1,22 @@
 // Accès des tests à l'environnement Docker Compose (tests/environnement).
 // Les mots de passe sont lus dans le fichier .env créé par demarrer.sh : aucun n'est écrit dans le dépôt.
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseEnv } from 'node:util';
 import { lireVariable } from '../src/configuration/variables';
 
 const FICHIER_ENV = join(__dirname, '../../../tests/environnement/.env');
 
+/* eslint-disable security/detect-non-literal-fs-filename -- chemin fixe, calculé depuis l'emplacement de ce fichier */
 export function chargerEnvironnementDeTest(): void {
   if (!existsSync(FICHIER_ENV)) {
     throw new Error("Environnement de test absent : lancer d'abord tests/environnement/demarrer.sh");
   }
-  process.loadEnvFile(FICHIER_ENV);
+  // Jest donne à chaque fichier de tests sa propre copie de process.env :
+  // process.loadEnvFile() remplirait celle de Node.js, que les tests ne voient pas.
+  Object.assign(process.env, parseEnv(readFileSync(FICHIER_ENV, 'utf8')));
 }
+/* eslint-enable security/detect-non-literal-fs-filename */
 
 /** Réglages d'accès d'un service à sa base et au broker, tels que demarrer.sh les a créés. */
 export function variablesDuService(service: 'annonces' | 'notifications'): Record<string, string> {

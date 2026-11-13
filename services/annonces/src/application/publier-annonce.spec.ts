@@ -99,6 +99,9 @@ describe('PublierAnnonce', () => {
     const annonce = await casDUsage.executer(CONTENU, AUTEUR);
 
     expect(depot.annonces).toEqual([annonce]);
-    expect(journal).toHaveBeenCalledWith(expect.objectContaining({ etat: 'evenement-non-emis', annonceId: annonce.id }));
+    expect(journal).toHaveBeenCalledWith(
+      expect.objectContaining({ etat: 'evenement-non-emis', annonceId: annonce.id }),
+      expect.stringContaining('broker injoignable'),
+    );
   });
 });

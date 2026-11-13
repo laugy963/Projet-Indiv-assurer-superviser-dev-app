@@ -95,7 +95,7 @@ describe('US-01 — Publier une annonce (POST /api/annonces)', () => {
       id: expect.stringMatching(UUID),
       type: 'annonce.publiee',
       version: 1,
-      date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/),
+      date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
       donnees: {
         annonceId: reponse.body.id,
         titre: ANNONCE_VALIDE.titre,
