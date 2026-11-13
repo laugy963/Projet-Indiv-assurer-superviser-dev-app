@@ -76,6 +76,11 @@ export class SondeBroker {
     return (await this.canal.checkQueue(file)).messageCount;
   }
 
+  /** Nombre de consommateurs branchés sur une file. */
+  async consommateurs(file: string): Promise<number> {
+    return (await this.canal.checkQueue(file)).consumerCount;
+  }
+
   async vider(file: string): Promise<void> {
     await this.canal.purgeQueue(file);
   }

@@ -38,7 +38,10 @@ compte_broker notifications "$AMQP_NOTIFICATIONS_MOT_DE_PASSE" \
 echo "Broker prêt : topologie importée, comptes « annonces » et « notifications » créés"
 
 if [ "$MODE" != "acceptation" ]; then
-  echo "Environnement d'intégration prêt"
+  # Les tests d'intégration lancent eux-mêmes le service testé. Les conteneurs des services, s'ils existent,
+  # sont arrêtés : ils liraient la même file et la même base que lui.
+  dc --profile acceptation stop annonces notifications >/dev/null 2>&1 || true
+  echo "Environnement d'intégration prêt (services annonces et notifications arrêtés)"
   exit 0
 fi
 

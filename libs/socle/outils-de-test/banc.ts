@@ -29,8 +29,31 @@ export interface ServiceSousTest {
   brancher?: (app: INestApplication, reglages: Reglages) => Promise<void>;
 }
 
+/** File du service notifications : c'est elle que lirait un service resté en marche à côté des tests. */
+const FILE_DES_NOTIFICATIONS = 'notifications.annonce-publiee';
+
+/**
+ * Les tests d'intégration partagent PostgreSQL et RabbitMQ avec l'environnement d'acceptation.
+ * Si ses services tournent encore, ils consomment les événements des tests à la place du service testé :
+ * les tests échoueraient au hasard. Mieux vaut un refus immédiat, avec la marche à suivre.
+ */
+async function refuserUnServiceDejaEnMarche(): Promise<void> {
+  const sonde = await SondeBroker.connecter();
+  try {
+    if ((await sonde.consommateurs(FILE_DES_NOTIFICATIONS)) > 0) {
+      throw new Error(
+        'Un service notifications lit déjà la file du broker : les services de l’environnement d’acceptation ' +
+          'tournent encore. Lancer « npm run env:integration », qui les arrête, puis relancer les tests.',
+      );
+    }
+  } finally {
+    await sonde.fermer();
+  }
+}
+
 export async function demarrerBanc(sousTest: ServiceSousTest): Promise<Banc> {
   const acces = variablesDuService(sousTest.service);
+  await refuserUnServiceDejaEnMarche();
   const emetteur = await EmetteurDeTest.demarrer();
   const reglages = lireReglages({
     ...acces,
