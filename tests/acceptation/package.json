@@ -1,0 +1,10 @@
+{
+  "name": "@epouvante/tests-acceptation",
+  "version": "0.1.0",
+  "description": "Tests d'acceptation du backlog, joués à travers les deux services",
+  "private": true,
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jose": "6.2.17"
+  }
+}

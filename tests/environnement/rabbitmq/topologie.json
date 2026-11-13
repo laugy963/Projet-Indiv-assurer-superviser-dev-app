@@ -1,0 +1,18 @@
+{
+  "vhosts": [{ "name": "/" }],
+  "exchanges": [
+    { "name": "annonces", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "annonces.echecs", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false, "internal": false, "arguments": {} }
+  ],
+  "queues": [
+    { "name": "notifications.annonce-publiee", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} },
+    { "name": "notifications.annonce-publiee.echecs", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} }
+  ],
+  "bindings": [
+    { "source": "annonces", "vhost": "/", "destination": "notifications.annonce-publiee", "destination_type": "queue", "routing_key": "annonce.publiee", "arguments": {} },
+    { "source": "annonces.echecs", "vhost": "/", "destination": "notifications.annonce-publiee.echecs", "destination_type": "queue", "routing_key": "", "arguments": {} }
+  ],
+  "policies": [
+    { "name": "echecs", "vhost": "/", "pattern": "^notifications\\.annonce-publiee$", "apply-to": "queues", "priority": 0, "definition": { "dead-letter-exchange": "annonces.echecs" } }
+  ]
+}
