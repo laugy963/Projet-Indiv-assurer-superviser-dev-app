@@ -31,29 +31,32 @@ type ClePrivee = Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 export class EmetteurDeTest {
   readonly emetteur = EMETTEUR_DE_TEST;
   readonly audience = AUDIENCE_DE_TEST;
-  /** Nombre de lectures des clés publiques : prouve que la vérification ne les relit pas à chaque requête. */
-  lecturesDesCles = 0;
 
   private constructor(
     private readonly serveur: Server,
     private readonly clePubliee: ClePrivee,
     private readonly cleInconnue: ClePrivee,
+    private readonly compteur: { lectures: number },
   ) {}
+
+  /** Nombre de lectures des clés publiques : prouve que la vérification ne les relit pas à chaque requête. */
+  get lecturesDesCles(): number {
+    return this.compteur.lectures;
+  }
 
   static async demarrer(): Promise<EmetteurDeTest> {
     const publiee = await generateKeyPair('RS256');
     const inconnue = await generateKeyPair('RS256');
     const jwk: JWK = { ...(await exportJWK(publiee.publicKey)), kid: 'cle-de-test', alg: 'RS256', use: 'sig' };
 
-    let emetteur: EmetteurDeTest | undefined;
+    const compteur = { lectures: 0 };
     const serveur = createServer((_requete, reponse) => {
-      if (emetteur) emetteur.lecturesDesCles++;
+      compteur.lectures++;
       reponse.writeHead(200, { 'Content-Type': 'application/json' });
       reponse.end(JSON.stringify({ keys: [jwk] }));
     });
     await new Promise<void>((pret) => serveur.listen(0, '127.0.0.1', pret));
-    emetteur = new EmetteurDeTest(serveur, publiee.privateKey, inconnue.privateKey);
-    return emetteur;
+    return new EmetteurDeTest(serveur, publiee.privateKey, inconnue.privateKey, compteur);
   }
 
   /** Adresse où le service lit les clés publiques. */

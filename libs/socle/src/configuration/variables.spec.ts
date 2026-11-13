@@ -14,8 +14,13 @@ describe('lireVariable', () => {
   });
 
   it("n'écrit jamais la valeur d'une autre variable dans le message d'erreur", () => {
-    expect(() => lireVariable('ABSENTE', { BDD_MOT_DE_PASSE: 'tres-secret' })).toThrow(
-      expect.not.objectContaining({ message: expect.stringContaining('tres-secret') }),
-    );
+    let message = '';
+    try {
+      lireVariable('ABSENTE', { BDD_MOT_DE_PASSE: 'tres-secret' });
+    } catch (erreur) {
+      message = (erreur as Error).message;
+    }
+    expect(message).toContain('ABSENTE');
+    expect(message).not.toContain('tres-secret');
   });
 });

@@ -46,6 +46,7 @@ describe('GardeAcces', () => {
     };
     const contexte = {
       getType: () => type,
+      // eslint-disable-next-line security/detect-object-injection -- nom de méthode typé, écrit dans le test
       getHandler: () => ControleurFactice.prototype[methode],
       getClass: () => ControleurFactice,
       switchToHttp: () => ({ getRequest: () => requete }),
