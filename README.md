@@ -18,7 +18,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 2 | Processus de développement | Terminée |
 | 3 | Exigences et architecture | Terminée |
 | 4 | Bac à sable | Terminée |
-| 5 | Développement du prototype | À faire |
+| 5 | Développement du prototype | En attente de validation |
 | 6 | Pipeline CI/CD | À faire |
 | 7 | Déploiement, observabilité, charge | À faire |
 | 8 | Audit et remédiation | À faire |
@@ -31,12 +31,18 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 ├── .github/workflows/     pipelines GitHub Actions (étape 6)
 ├── services/
 │   ├── annonces/          service des annonces de troc et de don (étape 5)
-│   └── notifications/     service des notifications (étape 5)
+│   ├── notifications/     service des notifications (étape 5)
+│   └── Dockerfile         image d'un service, la même recette pour les deux
+├── libs/
+│   └── socle/             code technique commun aux deux services : contrôle d'accès, erreurs, validation (étape 5)
 ├── deploy/
 │   ├── k3d/               configuration du cluster local (étape 4)
+│   ├── keycloak/          royaume Keycloak versionné, sans compte ni mot de passe (étape 5)
 │   └── k8s/               manifestes Kubernetes (étape 7)
 ├── tests/
+│   ├── environnement/     environnement de test Docker Compose (étape 5)
 │   ├── acceptation/       tests d'acceptation du backlog (étape 5)
+│   ├── resultats/         sortie brute de la dernière exécution des tests (étape 5)
 │   └── charge/            scénarios de test de charge (étape 7)
 ├── sandbox/               code et configuration des expérimentations (étape 4)
 └── docs/
@@ -45,6 +51,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── 02-competences-et-formation.md  cartographie, écarts, recrutement, formation
     ├── 03-exigences-et-backlog.md      exigences, user stories, critères d'acceptation
     ├── 03-architecture.md              composants, flux, données, sécurité, limites
+    ├── 05-developpement-poc.md         prototype réalisé, critères prouvés, difficultés, limites
     ├── retroplanning.md   calendrier jusqu'à la soutenance
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
@@ -61,9 +68,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 4. [Exigences et backlog](docs/03-exigences-et-backlog.md)
 5. [Architecture technique](docs/03-architecture.md), avec son [schéma](docs/schemas/architecture-technique.md)
 6. [Bac à sable : synthèse des expérimentations](docs/experimentations/README.md)
-7. [Fiches de décision](docs/adr/README.md)
-8. [Rétroplanning](docs/retroplanning.md)
-9. [Journal de bord](docs/journal.md)
+7. [Développement du prototype](docs/05-developpement-poc.md), avec les [tests et leurs preuves](tests/README.md)
+8. [Fiches de décision](docs/adr/README.md)
+9. [Rétroplanning](docs/retroplanning.md)
+10. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 

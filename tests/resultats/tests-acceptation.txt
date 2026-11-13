@@ -1,32 +1,32 @@
-Tests d'acceptation — exécution du 2026-11-13 16:49:00
+Tests d'acceptation — exécution du 2026-11-13 16:57:43
 Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2 — PostgreSQL 18.7, RabbitMQ 4.4.0, Keycloak 26.8.2, services en conteneurs
 
-MESURE CA-11, délai entre la publication et la notification visible : 79 ms
-MESURE CA-15, arrêt du service notifications : 645 ms
-MESURE CA-15, relance du service notifications : 2309 ms
-MESURE CA-15, notification visible après la relance : 197 ms
-PASS src/us-04-etre-notifie.acceptation-spec.ts (6.708 s)
+MESURE CA-11, délai entre la publication et la notification visible : 58 ms
+MESURE CA-15, arrêt du service notifications : 546 ms
+MESURE CA-15, relance du service notifications : 2867 ms
+MESURE CA-15, notification visible après la relance : 256 ms
+PASS src/us-04-etre-notifie.acceptation-spec.ts (6.95 s)
   US-04 — Être notifié d’une annonce qui m’intéresse
-    ✓ CA-11 — B a choisi « figurines » ; A publie une annonce de cette catégorie : B la trouve en moins de 5 secondes (379 ms)
-    ✓ CA-12 — C n’a pas choisi cette catégorie : il ne reçoit aucune notification (139 ms)
-    ✓ CA-13 — A a lui-même choisi « figurines » : il n’est pas notifié de sa propre annonce (172 ms)
-    ✓ CA-13 — A reste notifié des annonces des autres membres (240 ms)
+    ✓ CA-11 — B a choisi « figurines » ; A publie une annonce de cette catégorie : B la trouve en moins de 5 secondes (342 ms)
+    ✓ CA-12 — C n’a pas choisi cette catégorie : il ne reçoit aucune notification (250 ms)
+    ✓ CA-13 — A a lui-même choisi « figurines » : il n’est pas notifié de sa propre annonce (191 ms)
+    ✓ CA-13 — A reste notifié des annonces des autres membres (84 ms)
     CA-15 — le service notifications est arrêté
-      ✓ la publication réussit (201) ; au redémarrage du service, B reçoit sa notification (3431 ms)
+      ✓ la publication réussit (201) ; au redémarrage du service, B reçoit sa notification (3957 ms)
 
 PASS src/securite.acceptation-spec.ts
   Sécurité de bout en bout, avec Keycloak
-    ✓ le jeton de Keycloak porte l’audience de l’API, les rôles du royaume et une durée de vie de 120 secondes (135 ms)
-    ✓ CA-01 — POST /api/annonces sans jeton : 401 (16 ms)
+    ✓ le jeton de Keycloak porte l’audience de l’API, les rôles du royaume et une durée de vie de 120 secondes (133 ms)
+    ✓ CA-01 — POST /api/annonces sans jeton : 401 (14 ms)
     ✓ CA-01 — GET /api/annonces sans jeton : 401 (4 ms)
-    ✓ CA-01 — GET /api/notifications sans jeton : 401 (8 ms)
-    ✓ CA-01 — GET /api/centres-interet sans jeton : 401 (12 ms)
-    ✓ CA-02 — un modérateur ne publie pas d’annonce : 403 (66 ms)
-    ✓ CA-18 puis CA-17 — un membre ne retire pas une annonce (403) ; un modérateur la retire (204) (252 ms)
+    ✓ CA-01 — GET /api/notifications sans jeton : 401 (10 ms)
+    ✓ CA-01 — GET /api/centres-interet sans jeton : 401 (3 ms)
+    ✓ CA-02 — un modérateur ne publie pas d’annonce : 403 (95 ms)
+    ✓ CA-18 puis CA-17 — un membre ne retire pas une annonce (403) ; un modérateur la retire (204) (377 ms)
 
 Test Suites: 2 passed, 2 total
 Tests:       12 passed, 12 total
 Snapshots:   0 total
-Time:        7.789 s
+Time:        8.187 s
 Ran all test suites.
 Test results written to: ../../reports/acceptation.json

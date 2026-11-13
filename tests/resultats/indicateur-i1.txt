@@ -1,4 +1,4 @@
-Indicateur I1 — exécution du 2026-11-13 16:49:08
+Indicateur I1 — exécution du 2026-11-13 16:57:52
 Calculé par tests/indicateur-i1.mjs à partir des rapports JSON des tests d'intégration et d'acceptation
 
 | Critère | Tests réussis | Tests en échec | Niveau |

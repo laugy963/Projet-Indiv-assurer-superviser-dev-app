@@ -1,4 +1,4 @@
-Couverture de code — exécution du 2026-11-13 16:47:42
+Couverture de code — exécution du 2026-11-13 16:56:49
 Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2 — PostgreSQL 18.7, RabbitMQ 4.4.0 réels, jetons de l'émetteur de test
 
 === libs/socle (tests unitaires)
@@ -35,15 +35,15 @@ All files                    |   97.84 |    81.53 |     100 |   98.26 |
 Test Suites: 7 passed, 7 total
 Tests:       70 passed, 70 total
 Snapshots:   0 total
-Time:        2.35 s
+Time:        2.787 s
 Ran all test suites.
 
 === services/annonces (tests unitaires et d'intégration)
 PASS integration test/integration/controle-acces.int-spec.ts
 PASS integration test/integration/us-01-publier-une-annonce.int-spec.ts
-PASS integration test/integration/us-06-retirer-une-annonce.int-spec.ts
-PASS integration test/integration/us-05-consulter-les-annonces.int-spec.ts
 PASS integration test/integration/sante.int-spec.ts
+PASS integration test/integration/us-05-consulter-les-annonces.int-spec.ts
+PASS integration test/integration/us-06-retirer-une-annonce.int-spec.ts
 PASS unitaire src/application/publier-annonce.spec.ts
 PASS unitaire src/application/lister-annonces.spec.ts
 PASS unitaire src/application/retirer-annonce.spec.ts
@@ -80,7 +80,7 @@ All files                         |   98.13 |    81.81 |   94.28 |   97.88 |
 Test Suites: 9 passed, 9 total
 Tests:       78 passed, 78 total
 Snapshots:   0 total
-Time:        7.823 s, estimated 8 s
+Time:        8.867 s, estimated 10 s
 Ran all test suites in 2 projects.
 
 === services/notifications (tests unitaires et d'intégration)
@@ -90,12 +90,12 @@ PASS integration test/integration/us-04-etre-notifie.int-spec.ts
 PASS integration test/integration/us-03-consulter-mes-notifications.int-spec.ts
 PASS integration test/integration/sante.int-spec.ts
 PASS unitaire src/entrees/annonce-publiee.consommateur.spec.ts
+PASS unitaire src/application/lister-notifications.spec.ts
 PASS unitaire src/application/notifier-membres-interesses.spec.ts
 PASS unitaire src/application/centres-interet.spec.ts
-PASS unitaire src/application/lister-notifications.spec.ts
 PASS unitaire src/domaine/evenement-annonce-publiee.spec.ts
-PASS unitaire src/domaine/centres-interet.spec.ts
 PASS unitaire src/domaine/correspondance.spec.ts
+PASS unitaire src/domaine/centres-interet.spec.ts
 ---------------------------------------|---------|----------|---------|---------|-------------------
 File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ---------------------------------------|---------|----------|---------|---------|-------------------
@@ -129,5 +129,5 @@ All files                              |   96.61 |    80.18 |   95.74 |    96.9 
 Test Suites: 12 passed, 12 total
 Tests:       83 passed, 83 total
 Snapshots:   0 total
-Time:        4.325 s
+Time:        5.275 s, estimated 6 s
 Ran all test suites in 2 projects.

@@ -40,6 +40,9 @@ Hors périmètre, cité pour mémoire : vente en ligne et paiement, abonnement e
 | 9 | Authentification et autorisation | Keycloak, OpenID Connect, jeton vérifié dans chaque service | Acceptée | [0009](adr/0009-authentification-et-autorisation.md) |
 | 10 | Exposition | API REST en HTTPS, Ingress Traefik, cert-manager | Acceptée | [0010](adr/0010-exposition-et-https.md) |
 | 11 | Observabilité | Métriques avec Prometheus et Grafana | Acceptée | [0011](adr/0011-observabilite.md) |
+| 12 | Code commun | Socle technique dans un paquet interne, npm workspaces | Acceptée | [0012](adr/0012-socle-commun.md) |
+| 13 | Environnement des tests | Docker Compose ; émetteur de jetons de test pour l'intégration | Acceptée | [0013](adr/0013-environnement-et-jetons-des-tests.md) |
+| 14 | Destinataire du jeton | Audience `api-epouvante` vérifiée dans chaque service | Acceptée | [0014](adr/0014-audience-du-jeton.md) |
 
 Organisation du code : un seul dépôt pour les deux services, les manifestes et la documentation. Un prototype tenu par une seule personne y gagne un pipeline unique et des modifications cohérentes entre services. L'alternative, un dépôt par service, se justifiera quand plusieurs équipes livreront à des rythmes différents.
 

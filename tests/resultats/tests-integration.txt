@@ -1,4 +1,4 @@
-Tests d'intégration — exécution du 2026-11-13 16:47:30
+Tests d'intégration — exécution du 2026-11-13 16:56:33
 Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2 — PostgreSQL 18.7, RabbitMQ 4.4.0 réels, jetons de l'émetteur de test
 
 
@@ -6,79 +6,79 @@ Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2 — PostgreSQL 18
 Running one project: integration
 PASS integration test/integration/controle-acces.int-spec.ts
   Contrôle d’accès — POST /api/annonces
-    ✓ CA-01 — sans jeton : 401 (137 ms)
-    ✓ CA-01 — jeton expiré : 401 (137 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (118 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (123 ms)
-    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (118 ms)
-    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (117 ms)
-    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (156 ms)
+    ✓ CA-01 — sans jeton : 401 (138 ms)
+    ✓ CA-01 — jeton expiré : 401 (132 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (116 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (111 ms)
+    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (119 ms)
+    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (113 ms)
+    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (116 ms)
   Contrôle d’accès — GET /api/annonces
-    ✓ CA-01 — sans jeton : 401 (111 ms)
-    ✓ CA-01 — jeton expiré : 401 (116 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (114 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (127 ms)
-    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (120 ms)
-    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (116 ms)
-    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (126 ms)
+    ✓ CA-01 — sans jeton : 401 (113 ms)
+    ✓ CA-01 — jeton expiré : 401 (122 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (121 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (113 ms)
+    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (116 ms)
+    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (112 ms)
+    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (120 ms)
   Contrôle d’accès — DELETE /api/annonces/{id}
-    ✓ CA-01 — sans jeton : 401 (109 ms)
-    ✓ CA-01 — jeton expiré : 401 (116 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (123 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (123 ms)
-    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (121 ms)
-    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (118 ms)
-    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (114 ms)
+    ✓ CA-01 — sans jeton : 401 (118 ms)
+    ✓ CA-01 — jeton expiré : 401 (118 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (116 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour s’attribuer les rôles : 401 (125 ms)
+    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (118 ms)
+    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (115 ms)
+    ✓ CA-02 — utilisateur authentifié sans le rôle exigé : 403 (115 ms)
 
 PASS integration test/integration/us-01-publier-une-annonce.int-spec.ts
   US-01 — Publier une annonce (POST /api/annonces)
-    ✓ CA-04 — une annonce valide est enregistrée au statut « publiée », avec son auteur et sa date (44 ms)
-    ✓ CA-05 — titre vide : 400, le champ est nommé, rien n’est enregistré ni émis (107 ms)
-    ✓ CA-05 — titre fait d’espaces : 400, le champ est nommé, rien n’est enregistré ni émis (112 ms)
-    ✓ CA-05 — titre de 2 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (112 ms)
-    ✓ CA-05 — titre de 101 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (121 ms)
+    ✓ CA-04 — une annonce valide est enregistrée au statut « publiée », avec son auteur et sa date (57 ms)
+    ✓ CA-05 — titre vide : 400, le champ est nommé, rien n’est enregistré ni émis (113 ms)
+    ✓ CA-05 — titre fait d’espaces : 400, le champ est nommé, rien n’est enregistré ni émis (133 ms)
+    ✓ CA-05 — titre de 2 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (164 ms)
+    ✓ CA-05 — titre de 101 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (119 ms)
     ✓ CA-05 — titre absent : 400, le champ est nommé, rien n’est enregistré ni émis (118 ms)
-    ✓ CA-05 — titre qui n’est pas un texte : 400, le champ est nommé, rien n’est enregistré ni émis (120 ms)
-    ✓ CA-05 — description de 9 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (117 ms)
-    ✓ CA-05 — description de 2 001 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (117 ms)
-    ✓ CA-05 — catégorie inconnue : 400, le champ est nommé, rien n’est enregistré ni émis (118 ms)
-    ✓ CA-05 — type inconnu : 400, le champ est nommé, rien n’est enregistré ni émis (116 ms)
-    ✓ CA-05 — champ non prévu : statut : 400, le champ est nommé, rien n’est enregistré ni émis (115 ms)
-    ✓ CA-05 — champ non prévu : auteur choisi par le client : 400, le champ est nommé, rien n’est enregistré ni émis (112 ms)
-    ✓ CA-06 — une publication émet l’événement « annonce.publiee », conforme au contrat (29 ms)
-    ✓ CA-06 — deux publications émettent deux événements distincts (120 ms)
-    ✓ CA-03 — un corps JSON illisible : 400 et un message lisible, sans détail technique (11 ms)
-    ✓ CA-03 — une route inconnue : 404 et un message lisible (5 ms)
-
-PASS integration test/integration/us-06-retirer-une-annonce.int-spec.ts
-  US-06 — Retirer une annonce (DELETE /api/annonces/{id})
-    ✓ CA-17 — un modérateur retire une annonce : 204, statut « retirée », date et modérateur tracés (32 ms)
-    ✓ CA-17 — l’annonce retirée n’apparaît plus dans la liste (20 ms)
-    ✓ CA-18 — un membre ne retire pas une annonce, même la sienne : 403, l’annonce reste publiée (8 ms)
-    ✓ CA-19 — retirer une annonce qui n’existe pas : 404 (7 ms)
-    ✓ CA-03 — un identifiant qui n’est pas un UUID : 400, sans erreur SQL dans la réponse (8 ms)
-    ✓ retirer une annonce déjà retirée : 204, la trace du premier retrait est conservée (13 ms)
+    ✓ CA-05 — titre qui n’est pas un texte : 400, le champ est nommé, rien n’est enregistré ni émis (113 ms)
+    ✓ CA-05 — description de 9 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (112 ms)
+    ✓ CA-05 — description de 2 001 caractères : 400, le champ est nommé, rien n’est enregistré ni émis (116 ms)
+    ✓ CA-05 — catégorie inconnue : 400, le champ est nommé, rien n’est enregistré ni émis (111 ms)
+    ✓ CA-05 — type inconnu : 400, le champ est nommé, rien n’est enregistré ni émis (122 ms)
+    ✓ CA-05 — champ non prévu : statut : 400, le champ est nommé, rien n’est enregistré ni émis (135 ms)
+    ✓ CA-05 — champ non prévu : auteur choisi par le client : 400, le champ est nommé, rien n’est enregistré ni émis (122 ms)
+    ✓ CA-06 — une publication émet l’événement « annonce.publiee », conforme au contrat (25 ms)
+    ✓ CA-06 — deux publications émettent deux événements distincts (121 ms)
+    ✓ CA-03 — un corps JSON illisible : 400 et un message lisible, sans détail technique (18 ms)
+    ✓ CA-03 — une route inconnue : 404 et un message lisible (9 ms)
 
 PASS integration test/integration/us-05-consulter-les-annonces.int-spec.ts
   US-05 — Consulter les annonces publiées (GET /api/annonces)
-    ✓ CA-16 — seules les annonces publiées apparaissent, de la plus récente à la plus ancienne (22 ms)
-    ✓ CA-16 — un modérateur consulte aussi la liste (9 ms)
-    ✓ CA-16 — la liste est servie par pages de 20 au plus (50 ms)
-    ✓ CA-03 — page nulle : 400, le paramètre est nommé (7 ms)
-    ✓ CA-03 — page négative : 400, le paramètre est nommé (5 ms)
-    ✓ CA-03 — page qui n’est pas un nombre : 400, le paramètre est nommé (5 ms)
-    ✓ CA-03 — page décimale : 400, le paramètre est nommé (6 ms)
-    ✓ CA-03 — taille de page choisie par le client : 400, le paramètre est nommé (5 ms)
+    ✓ CA-16 — seules les annonces publiées apparaissent, de la plus récente à la plus ancienne (36 ms)
+    ✓ CA-16 — un modérateur consulte aussi la liste (11 ms)
+    ✓ CA-16 — la liste est servie par pages de 20 au plus (46 ms)
+    ✓ CA-03 — page nulle : 400, le paramètre est nommé (8 ms)
+    ✓ CA-03 — page négative : 400, le paramètre est nommé (7 ms)
+    ✓ CA-03 — page qui n’est pas un nombre : 400, le paramètre est nommé (6 ms)
+    ✓ CA-03 — page décimale : 400, le paramètre est nommé (5 ms)
+    ✓ CA-03 — taille de page choisie par le client : 400, le paramètre est nommé (6 ms)
+
+PASS integration test/integration/us-06-retirer-une-annonce.int-spec.ts
+  US-06 — Retirer une annonce (DELETE /api/annonces/{id})
+    ✓ CA-17 — un modérateur retire une annonce : 204, statut « retirée », date et modérateur tracés (70 ms)
+    ✓ CA-17 — l’annonce retirée n’apparaît plus dans la liste (37 ms)
+    ✓ CA-18 — un membre ne retire pas une annonce, même la sienne : 403, l’annonce reste publiée (22 ms)
+    ✓ CA-19 — retirer une annonce qui n’existe pas : 404 (24 ms)
+    ✓ CA-03 — un identifiant qui n’est pas un UUID : 400, sans erreur SQL dans la réponse (17 ms)
+    ✓ retirer une annonce déjà retirée : 204, la trace du premier retrait est conservée (42 ms)
 
 PASS integration test/integration/sante.int-spec.ts
   Route interne GET /sante
-    ✓ répond 200 sans jeton (5 ms)
-    ✓ n’existe pas sous /api, seul chemin que le point d’entrée exposera (1 ms)
+    ✓ répond 200 sans jeton (46 ms)
+    ✓ n’existe pas sous /api, seul chemin que le point d’entrée exposera (8 ms)
 
 Test Suites: 5 passed, 5 total
 Tests:       54 passed, 54 total
 Snapshots:   0 total
-Time:        7.206 s, estimated 8 s
+Time:        9.53 s
 Ran all test suites.
 Test results written to: ../../reports/integration-annonces.json
 
@@ -86,71 +86,71 @@ Test results written to: ../../reports/integration-annonces.json
 Running one project: integration
 PASS integration test/integration/controle-acces.int-spec.ts
   Contrôle d’accès — PUT /api/centres-interet
-    ✓ CA-01 — sans jeton : 401 (33 ms)
-    ✓ CA-01 — jeton expiré : 401 (26 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (12 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (9 ms)
-    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (13 ms)
-    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (9 ms)
-    ✓ CA-02 — un modérateur, qui n’a pas le rôle « membre » : 403 (27 ms)
-  Contrôle d’accès — GET /api/centres-interet
-    ✓ CA-01 — sans jeton : 401 (16 ms)
-    ✓ CA-01 — jeton expiré : 401 (12 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (13 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (18 ms)
+    ✓ CA-01 — sans jeton : 401 (49 ms)
+    ✓ CA-01 — jeton expiré : 401 (28 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (11 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (13 ms)
     ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (10 ms)
     ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (11 ms)
     ✓ CA-02 — un modérateur, qui n’a pas le rôle « membre » : 403 (11 ms)
+  Contrôle d’accès — GET /api/centres-interet
+    ✓ CA-01 — sans jeton : 401 (19 ms)
+    ✓ CA-01 — jeton expiré : 401 (20 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (16 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (14 ms)
+    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (12 ms)
+    ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (12 ms)
+    ✓ CA-02 — un modérateur, qui n’a pas le rôle « membre » : 403 (14 ms)
   Contrôle d’accès — GET /api/notifications
-    ✓ CA-01 — sans jeton : 401 (12 ms)
-    ✓ CA-01 — jeton expiré : 401 (10 ms)
-    ✓ CA-01 — jeton à la signature falsifiée : 401 (11 ms)
-    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (9 ms)
-    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (10 ms)
+    ✓ CA-01 — sans jeton : 401 (15 ms)
+    ✓ CA-01 — jeton expiré : 401 (11 ms)
+    ✓ CA-01 — jeton à la signature falsifiée : 401 (10 ms)
+    ✓ CA-01 — jeton au contenu falsifié pour prendre l’identité d’un autre membre : 401 (14 ms)
+    ✓ CA-01 — jeton signé par une clé inconnue de l’émetteur : 401 (9 ms)
     ✓ CA-01 — jeton émis pour une autre application (audience) : 401 (10 ms)
-    ✓ CA-02 — un modérateur, qui n’a pas le rôle « membre » : 403 (11 ms)
-
-PASS integration test/integration/us-02-declarer-mes-centres-d-interet.int-spec.ts
-  US-02 — Déclarer mes centres d’intérêt (PUT et GET /api/centres-interet)
-    ✓ CA-07 — un membre enregistre une liste valide : 200, et il la retrouve en la consultant (29 ms)
-    ✓ CA-07 — la nouvelle liste remplace l’ancienne (21 ms)
-    ✓ CA-07 — une liste vide retire tous les centres d’intérêt (14 ms)
-    ✓ CA-07 — un membre sans liste consulte une liste vide (5 ms)
-    ✓ CA-07 — une catégorie répétée n’est enregistrée qu’une fois (7 ms)
-    ✓ CA-07 — chaque membre a sa liste : l’identité vient du jeton (16 ms)
-    ✓ CA-08 — une catégorie inconnue : 400, l’ancienne liste est conservée (12 ms)
-    ✓ CA-08 — une liste qui n’est pas un tableau : 400, l’ancienne liste est conservée (15 ms)
-    ✓ CA-08 — une liste absente : 400, l’ancienne liste est conservée (11 ms)
-    ✓ CA-08 — un élément qui n’est pas un texte : 400, l’ancienne liste est conservée (10 ms)
-    ✓ CA-08 — un champ non prévu : membre choisi par le client : 400, l’ancienne liste est conservée (10 ms)
+    ✓ CA-02 — un modérateur, qui n’a pas le rôle « membre » : 403 (9 ms)
 
 PASS integration test/integration/us-04-etre-notifie.int-spec.ts
   US-04 — Être notifié d’une annonce qui m’intéresse (événement « annonce.publiee »)
-    ✓ un événement crée une notification pour le membre intéressé, pas pour les autres ni pour l’auteur (44 ms)
-    ✓ CA-14 — le même événement remis une seconde fois ne crée pas de seconde notification (22 ms)
-    ✓ un message défectueux (une version de contrat inconnue) part en file des échecs et ne bloque pas la file (16 ms)
-    ✓ un message défectueux (des données incomplètes) part en file des échecs et ne bloque pas la file (17 ms)
-    ✓ un message défectueux (un contenu qui n’est pas un événement) part en file des échecs et ne bloque pas la file (16 ms)
+    ✓ un événement crée une notification pour le membre intéressé, pas pour les autres ni pour l’auteur (76 ms)
+    ✓ CA-14 — le même événement remis une seconde fois ne crée pas de seconde notification (51 ms)
+    ✓ un message défectueux (une version de contrat inconnue) part en file des échecs et ne bloque pas la file (30 ms)
+    ✓ un message défectueux (des données incomplètes) part en file des échecs et ne bloque pas la file (76 ms)
+    ✓ un message défectueux (un contenu qui n’est pas un événement) part en file des échecs et ne bloque pas la file (36 ms)
+
+PASS integration test/integration/us-02-declarer-mes-centres-d-interet.int-spec.ts
+  US-02 — Déclarer mes centres d’intérêt (PUT et GET /api/centres-interet)
+    ✓ CA-07 — un membre enregistre une liste valide : 200, et il la retrouve en la consultant (67 ms)
+    ✓ CA-07 — la nouvelle liste remplace l’ancienne (39 ms)
+    ✓ CA-07 — une liste vide retire tous les centres d’intérêt (39 ms)
+    ✓ CA-07 — un membre sans liste consulte une liste vide (14 ms)
+    ✓ CA-07 — une catégorie répétée n’est enregistrée qu’une fois (16 ms)
+    ✓ CA-07 — chaque membre a sa liste : l’identité vient du jeton (40 ms)
+    ✓ CA-08 — une catégorie inconnue : 400, l’ancienne liste est conservée (24 ms)
+    ✓ CA-08 — une liste qui n’est pas un tableau : 400, l’ancienne liste est conservée (24 ms)
+    ✓ CA-08 — une liste absente : 400, l’ancienne liste est conservée (23 ms)
+    ✓ CA-08 — un élément qui n’est pas un texte : 400, l’ancienne liste est conservée (28 ms)
+    ✓ CA-08 — un champ non prévu : membre choisi par le client : 400, l’ancienne liste est conservée (24 ms)
+
+PASS integration test/integration/us-03-consulter-mes-notifications.int-spec.ts
+  US-03 — Consulter mes notifications (GET /api/notifications)
+    ✓ CA-09 — la liste va de la plus récente à la plus ancienne ; chaque notification décrit l’annonce (29 ms)
+    ✓ CA-09 — un membre sans notification consulte une liste vide (9 ms)
+    ✓ CA-10 — un membre ne voit aucune notification d’un autre membre (27 ms)
+    ✓ CA-10 — un paramètre d’URL « membreId » ne permet pas de choisir le membre : l’identité vient du jeton (14 ms)
+    ✓ CA-10 — un paramètre d’URL « membre_id » ne permet pas de choisir le membre : l’identité vient du jeton (9 ms)
+    ✓ CA-10 — un paramètre d’URL « sub » ne permet pas de choisir le membre : l’identité vient du jeton (12 ms)
+    ✓ CA-10 — un en-tête « X-Membre-Id » ne permet pas de choisir le membre : l’identité vient du jeton (15 ms)
+    ✓ la liste est bornée aux 100 notifications les plus récentes (22 ms)
 
 PASS integration test/integration/sante.int-spec.ts
   Route interne GET /sante
     ✓ répond 200 sans jeton (5 ms)
-    ✓ n’existe pas sous /api, seul chemin que le point d’entrée exposera (1 ms)
-
-PASS integration test/integration/us-03-consulter-mes-notifications.int-spec.ts
-  US-03 — Consulter mes notifications (GET /api/notifications)
-    ✓ CA-09 — la liste va de la plus récente à la plus ancienne ; chaque notification décrit l’annonce (28 ms)
-    ✓ CA-09 — un membre sans notification consulte une liste vide (6 ms)
-    ✓ CA-10 — un membre ne voit aucune notification d’un autre membre (11 ms)
-    ✓ CA-10 — un paramètre d’URL « membreId » ne permet pas de choisir le membre : l’identité vient du jeton (10 ms)
-    ✓ CA-10 — un paramètre d’URL « membre_id » ne permet pas de choisir le membre : l’identité vient du jeton (8 ms)
-    ✓ CA-10 — un paramètre d’URL « sub » ne permet pas de choisir le membre : l’identité vient du jeton (10 ms)
-    ✓ CA-10 — un en-tête « X-Membre-Id » ne permet pas de choisir le membre : l’identité vient du jeton (8 ms)
-    ✓ la liste est bornée aux 100 notifications les plus récentes (13 ms)
+    ✓ n’existe pas sous /api, seul chemin que le point d’entrée exposera (2 ms)
 
 Test Suites: 5 passed, 5 total
 Tests:       47 passed, 47 total
 Snapshots:   0 total
-Time:        3.445 s, estimated 4 s
+Time:        5.121 s
 Ran all test suites.
 Test results written to: ../../reports/integration-notifications.json

@@ -21,6 +21,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 - `docs/01-cadrage.md` — périmètre, décisions, contraintes, questions ouvertes, risques
 - `docs/02-processus-developpement.md` — indicateurs I1 à I4, cycle DevSecOps, jobs du pipeline, stratégie de tests ; `docs/02-competences-et-formation.md` — cartographie, recrutement, formation
 - `docs/03-exigences-et-backlog.md` — exigences EF et ENF, user stories US-01 à US-06, critères d'acceptation CA-01 à CA-19 ; `docs/03-architecture.md` — composants, API, événement, données, sécurité, limites du prototype
+- `docs/05-developpement-poc.md` — prototype réalisé : versions figées, structure, traçabilité critères → tests, résultats, écarts avec l'architecture (paragraphe 10), difficultés, limites (paragraphe 12)
 - `docs/experimentations/README.md` — synthèse du bac à sable : résultats, mémoire mesurée, règles techniques à appliquer aux étapes 5 et 7 (paragraphe 5) ; un protocole par expérimentation à côté
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
@@ -31,9 +32,10 @@ Avancement : ne pas le déduire de ce fichier. Le lire dans `README.md` (tableau
 
 ## Map du repo
 
-- `services/annonces/`, `services/notifications/` — les deux services du POC (étape 5)
-- `deploy/k3d/` — cluster local (étape 4) ; `deploy/k8s/` — manifestes Kubernetes (étape 7)
-- `tests/acceptation/` (étape 5), `tests/charge/` (étape 7)
+- `services/annonces/`, `services/notifications/` — les deux services du POC (étape 5), même structure : `src/entrees`, `application`, `domaine`, `adaptateurs`, `migrations` ; `test/integration`. Image : `services/Dockerfile`
+- `libs/socle/` — code technique commun (garde d'accès, erreurs, validation, réglages, démarrage) et outils de test ; aucune règle métier (ADR 0012)
+- `deploy/k3d/` — cluster local (étape 4) ; `deploy/keycloak/` — royaume versionné ; `deploy/k8s/` — manifestes Kubernetes (étape 7)
+- `tests/environnement/` — environnement de test Docker Compose ; `tests/acceptation/` ; `tests/resultats/` — sorties brutes, la preuve ; `tests/charge/` (étape 7)
 - `sandbox/` — un sous-dossier rejouable par expérimentation (étape 4)
 - `.github/workflows/` (à créer, étape 6) — pipelines GitHub Actions
 - `Contexte et Consigne - Indiv/` — sources officielles (PDF, XLSX), synthétisées dans `.claude/docs/` ; ne relire l'original qu'en cas de doute
@@ -53,12 +55,20 @@ Les fiches ADR font foi ; ceci n'est qu'un résumé.
 - Données : PostgreSQL, une instance, une base et un compte par service, TypeORM, migrations versionnées (ADR 0008).
 - Sécurité : Keycloak, OpenID Connect, rôles `membre` et `moderateur`, jeton vérifié dans chaque service (ADR 0009).
 - Exposition : API REST en HTTPS, Ingress Traefik, cert-manager (ADR 0010). Observabilité : Prometheus + Grafana (ADR 0011). Mise à l'échelle : HPA.
+- Versions figées à l'étape 5 : Node.js 26.13.1, NestJS 12.5.0, TypeScript 6.0.3 (pas la 7 : ts-jest et typescript-eslint ne l'acceptent pas), Jest 30.5.2 ; liste complète dans `docs/05-developpement-poc.md`.
+- Socle commun en paquet interne, npm workspaces (ADR 0012). Tests : Docker Compose, émetteur de jetons de test en intégration, Keycloak en acceptation (ADR 0013). Audience `api-epouvante` vérifiée dans chaque service (ADR 0014).
 - Poste : MacBook Pro M1, 8 Go, arm64. Chaque composant ajouté au cluster local coûte de la mémoire ; images construites pour arm64 et amd64.
 
 ## Commandes
 
-Le code arrive à l'étape 5. Ajouter ici les commandes (install, lint, test, build, déploiement) dès qu'elles existent et ont été exécutées avec succès.
+Ajouter ici les commandes de déploiement dès qu'elles existent et ont été exécutées avec succès.
 
+- Prototype, depuis la racine, détail dans `tests/README.md` (exécutées le 13 novembre 2026) :
+  installer `npm ci` ; contrôler `npm run lint`, `npm run typage` ; compiler `npm run build` ;
+  tests unitaires `npm run test:unit` ; intégration `npm run env:integration` puis `npm run test:int` ; acceptation `npm run env:acceptation` puis `npm run test:acceptation` ;
+  tout rejouer et enregistrer les preuves `npm run preuves` (environ 2 minutes) ; arrêter `npm run env:arret` (l'environnement d'acceptation occupe environ 920 Mio).
+  Jest a besoin de `NODE_OPTIONS=--experimental-vm-modules` (déjà dans les scripts) ; pour une sortie qui liste chaque test, ajouter `--verbose --reporters=default`.
+  `env:integration` arrête les conteneurs des deux services : ils consommeraient les événements à la place du service testé.
 - Cluster local k3d, détail dans `deploy/k3d/README.md` (exécutées le 13 novembre 2026) :
   créer `k3d cluster create --config deploy/k3d/cluster.yaml` ; relancer ou arrêter `k3d cluster start epouvante`, `k3d cluster stop epouvante` ; accès `source deploy/k3d/env.sh` avant tout `kubectl` ou `helm` (fichier d'accès propre au projet, `~/.kube/config` n'est pas utilisé).
   Arrêter le cluster après usage : il occupe environ 2 Gio sur les 3,83 Gio du moteur Docker. Après un `start`, compter 4 à 5 minutes avant que tous les pods soient prêts.
