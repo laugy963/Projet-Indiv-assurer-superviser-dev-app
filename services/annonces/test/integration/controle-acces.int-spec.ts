@@ -16,6 +16,10 @@ interface Route {
 
 const ROUTES: Route[] = [
   { nom: 'POST /api/annonces', methode: 'post', chemin: () => '/api/annonces', corps: ANNONCE_VALIDE, rolesInsuffisants: ['moderateur'] },
+  // Authentifié, mais ni membre ni modérateur.
+  { nom: 'GET /api/annonces', methode: 'get', chemin: () => '/api/annonces', rolesInsuffisants: [] },
+  // CA-18 : un membre ne retire pas une annonce.
+  { nom: 'DELETE /api/annonces/{id}', methode: 'delete', chemin: (id) => `/api/annonces/${id}`, rolesInsuffisants: ['membre'] },
 ];
 
 describe.each(ROUTES)('Contrôle d’accès — $nom', (route) => {

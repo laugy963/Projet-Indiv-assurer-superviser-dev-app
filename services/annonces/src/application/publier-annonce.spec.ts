@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
-import type { Annonce } from '../domaine/annonce';
 import type { EvenementAnnoncePubliee } from '../domaine/evenements';
-import { DepotAnnonces, EmetteurEvenements } from '../domaine/ports';
+import { EmetteurEvenements } from '../domaine/ports';
+import { DepotEnMemoire } from '../../test/doubles/depot-en-memoire';
 import { PublierAnnonce } from './publier-annonce';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -14,17 +14,6 @@ const CONTENU = {
 } as const;
 
 // Doubles de test : le cas d'usage est vérifié sans base ni broker.
-class DepotEnMemoire extends DepotAnnonces {
-  readonly annonces: Annonce[] = [];
-  constructor(private readonly ordre: string[]) {
-    super();
-  }
-  async enregistrer(annonce: Annonce): Promise<void> {
-    this.ordre.push('enregistrer');
-    this.annonces.push(annonce);
-  }
-}
-
 class EmetteurFactice extends EmetteurEvenements {
   readonly emis: EvenementAnnoncePubliee[] = [];
   panne: Error | undefined;

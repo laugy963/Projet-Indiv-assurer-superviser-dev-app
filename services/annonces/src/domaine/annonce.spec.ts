@@ -50,4 +50,28 @@ describe('Annonce', () => {
       expect(publier).toThrow(expect.objectContaining({ champ }));
     });
   });
+
+  describe('retirer (US-06)', () => {
+    const MODERATEUR = '5e4f3a2b-1c0d-4e9f-8a7b-6c5d4e3f2a1b';
+    const RETRAIT = new Date('2027-02-02T08:00:00Z');
+
+    it('passe l’annonce au statut « retirée », avec la date du retrait et le modérateur', () => {
+      const annonce = Annonce.publier(ID, CONTENU, AUTEUR, DATE);
+
+      expect(annonce.retirer(MODERATEUR, RETRAIT)).toBe(true);
+
+      expect(annonce).toMatchObject({ statut: 'retiree', retireeLe: RETRAIT, retireePar: MODERATEUR });
+      // La trace de la publication est conservée.
+      expect(annonce).toMatchObject({ auteurId: AUTEUR, publieeLe: DATE });
+    });
+
+    it('ne réécrit pas la trace d’une annonce déjà retirée', () => {
+      const annonce = Annonce.publier(ID, CONTENU, AUTEUR, DATE);
+      annonce.retirer(MODERATEUR, RETRAIT);
+
+      expect(annonce.retirer('11111111-1111-4111-8111-111111111111', new Date('2027-03-01T00:00:00Z'))).toBe(false);
+
+      expect(annonce).toMatchObject({ statut: 'retiree', retireeLe: RETRAIT, retireePar: MODERATEUR });
+    });
+  });
 });
