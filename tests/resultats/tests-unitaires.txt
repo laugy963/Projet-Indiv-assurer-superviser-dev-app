@@ -1,0 +1,215 @@
+Tests unitaires — exécution du 2026-11-13 16:47:25
+Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2
+
+=== libs/socle
+PASS src/socle.module.spec.ts
+  SocleModule — ce que reçoit un service qui l’importe
+    ✓ la garde protège toutes les routes : 401 sans jeton (10 ms)
+    ✓ l'identité transmise au contrôleur est celle du jeton (17 ms)
+    ✓ une route qui oublie de déclarer un rôle est fermée, même avec un jeton valide (2 ms)
+    ✓ la validation par liste blanche s’applique à toutes les routes (8 ms)
+    ✓ une erreur inattendue donne 500, sans détail technique (7 ms)
+    ✓ la route interne /sante répond sans jeton (2 ms)
+
+PASS src/securite/verificateur-jeton-oidc.spec.ts
+  VerificateurJetonOidc
+    ✓ accepte un jeton valide : l'identité vient de « sub », les rôles de « realm_access.roles » (5 ms)
+    ✓ refuse un jeton signé par une clé que l’émetteur ne publie pas (1 ms)
+    ✓ refuse un jeton dont la signature a été modifiée (1 ms)
+    ✓ refuse un jeton dont le contenu a été modifié pour s'attribuer le rôle « moderateur » (1 ms)
+    ✓ refuse un jeton expiré (1 ms)
+    ✓ refuse un jeton d’un autre émetteur (1 ms)
+    ✓ refuse un jeton destiné à une autre application (audience) (1 ms)
+    ✓ refuse un jeton sans audience (1 ms)
+    ✓ refuse un jeton signé avec un autre algorithme que RS256 (1 ms)
+    ✓ refuse un jeton non signé (algorithme « none ») (1 ms)
+    ✓ refuse un jeton sans identité (« sub ») (1 ms)
+    ✓ refuse un jeton dont l'identité n'est pas un UUID (1 ms)
+    ✓ refuse une chaîne qui n’est pas un jeton
+    ✓ garde les clés publiques en cache : une seule lecture pour plusieurs vérifications (60 ms)
+
+PASS src/validation/tuyau-validation.spec.ts
+  tuyau de validation
+    ✓ accepte une entrée conforme (3 ms)
+    ✓ nomme chaque champ en erreur, avec un message lisible (1 ms)
+    ✓ signale un champ obligatoire absent
+    ✓ refuse un champ non prévu (liste blanche)
+    ✓ refuse un corps qui n’est pas un objet (1 ms)
+
+PASS src/securite/garde-acces.spec.ts
+  GardeAcces
+    authentification (401)
+      ✓ refuse une requête sans en-tête Authorization, sans appeler le vérificateur (2 ms)
+      ✓ refuse un en-tête qui n’est pas « Bearer <jeton> » : "Basic bWVtYnJlOm1kcA=="
+      ✓ refuse un en-tête qui n’est pas « Bearer <jeton> » : "Bearer" (1 ms)
+      ✓ refuse un en-tête qui n’est pas « Bearer <jeton> » : "Bearer "
+      ✓ refuse un en-tête qui n’est pas « Bearer <jeton> » : "jeton-sans-prefixe"
+      ✓ refuse un jeton que le vérificateur rejette (1 ms)
+      ✓ écrit le motif du refus dans le journal, jamais dans la réponse (1 ms)
+      ✓ refuse aussi quand le vérificateur échoue pour une raison technique
+    autorisation (403)
+      ✓ laisse passer un membre sur une route réservée aux membres
+      ✓ laisse passer quand un seul des rôles exigés est porté (1 ms)
+      ✓ refuse un membre sur une route réservée aux modérateurs
+      ✓ refuse par défaut une route qui ne déclare aucun rôle
+      ✓ range l'utilisateur vérifié dans la requête : l'identité vient du jeton
+    hors du contrôle par jeton
+      ✓ laisse passer une route interne (sonde de santé) sans jeton (1 ms)
+      ✓ laisse passer un message du broker : il ne porte pas de jeton, le broker authentifie le service
+
+PASS src/erreurs/filtre-erreurs.spec.ts
+  FiltreErreurs
+    ✓ traduit [UnauthorizedException: Unauthorized] en code 401 et message lisible (2 ms)
+    ✓ traduit [ForbiddenException: Forbidden] en code 403 et message lisible
+    ✓ traduit [NotFoundException: Not Found] en code 404 et message lisible (1 ms)
+    ✓ traduit [PayloadTooLargeException: Payload Too Large] en code 413 et message lisible
+    ✓ nomme les champs en erreur d’une requête invalide
+    ✓ ne recopie pas le détail d'une erreur de lecture du corps JSON
+    ✓ répond 500 sans détail technique à une erreur inattendue, et la journalise (2 ms)
+    ✓ ne journalise pas comme une panne une erreur due au client
+    ✓ hors HTTP (message du broker), relance l’erreur telle quelle (1 ms)
+
+PASS src/configuration/variables.spec.ts
+  lireVariable
+    ✓ rend la valeur de la variable d’environnement (3 ms)
+    ✓ arrête le démarrage quand une variable obligatoire manque, en la nommant (3 ms)
+    ✓ traite une variable vide comme absente
+    ✓ n'écrit jamais la valeur d'une autre variable dans le message d'erreur (1 ms)
+
+PASS src/configuration/reglages.spec.ts
+  lireReglages
+    ✓ lit tous les réglages du service dans l’environnement (1 ms)
+    ✓ refuse de démarrer sans la variable PORT (3 ms)
+    ✓ refuse de démarrer sans la variable BDD_HOTE
+    ✓ refuse de démarrer sans la variable BDD_PORT
+    ✓ refuse de démarrer sans la variable BDD_NOM (1 ms)
+    ✓ refuse de démarrer sans la variable BDD_UTILISATEUR
+    ✓ refuse de démarrer sans la variable BDD_MOT_DE_PASSE
+    ✓ refuse de démarrer sans la variable AMQP_HOTE (1 ms)
+    ✓ refuse de démarrer sans la variable AMQP_PORT
+    ✓ refuse de démarrer sans la variable AMQP_UTILISATEUR
+    ✓ refuse de démarrer sans la variable AMQP_MOT_DE_PASSE (4 ms)
+    ✓ refuse de démarrer sans la variable OIDC_EMETTEUR (1 ms)
+    ✓ refuse de démarrer sans la variable OIDC_URL_CLES (1 ms)
+    ✓ refuse de démarrer sans la variable OIDC_AUDIENCE
+    ✓ règle séparément l’émetteur attendu et l’adresse des clés (règle du bac à sable)
+  urlBroker
+    ✓ compose l’adresse AMQP du broker
+    ✓ encode un mot de passe qui contient des caractères réservés d’une adresse (1 ms)
+
+Test Suites: 7 passed, 7 total
+Tests:       70 passed, 70 total
+Snapshots:   0 total
+Time:        1.791 s
+Ran all test suites.
+
+=== services/annonces
+Running one project: unitaire
+PASS unitaire src/application/publier-annonce.spec.ts
+  PublierAnnonce
+    ✓ enregistre l'annonce au nom de l'auteur, puis émet l'événement (4 ms)
+    ✓ émet un événement conforme au contrat : version 1, sans la description de l'annonce (1 ms)
+    ✓ n'émet rien quand l'enregistrement échoue (8 ms)
+    ✓ garde l'annonce publiée et journalise le défaut quand l'émission échoue (1 ms)
+
+PASS unitaire src/application/retirer-annonce.spec.ts
+  RetirerAnnonce (US-06)
+    ✓ retire une annonce publiée et enregistre la trace de la modération (1 ms)
+    ✓ signale une annonce qui n’existe pas
+    ✓ ne réécrit rien pour une annonce déjà retirée
+
+PASS unitaire src/application/lister-annonces.spec.ts
+  ListerAnnonces (US-05)
+    ✓ sert des pages de 20 annonces au plus (2 ms)
+    ✓ ne demande au dépôt que les annonces publiées de la page (1 ms)
+    ✓ rend une page vide quand il n’y a aucune annonce
+
+PASS unitaire src/domaine/annonce.spec.ts
+  Annonce
+    publier
+      ✓ crée une annonce au statut « publiée », avec son auteur et sa date (1 ms)
+      ✓ accepte les six catégories de la liste fermée (1 ms)
+      ✓ accepte une valeur à la limite : titre de 3 caractères
+      ✓ accepte une valeur à la limite : titre de 100 caractères
+      ✓ accepte une valeur à la limite : description de 10 caractères
+      ✓ accepte une valeur à la limite : description de 2 000 caractères
+      ✓ refuse une annonce invalide : titre de 2 caractères (3 ms)
+      ✓ refuse une annonce invalide : titre de 101 caractères
+      ✓ refuse une annonce invalide : description de 9 caractères (1 ms)
+      ✓ refuse une annonce invalide : description de 2 001 caractères
+      ✓ refuse une annonce invalide : catégorie hors liste (1 ms)
+      ✓ refuse une annonce invalide : type hors liste
+    retirer (US-06)
+      ✓ passe l’annonce au statut « retirée », avec la date du retrait et le modérateur (1 ms)
+      ✓ ne réécrit pas la trace d’une annonce déjà retirée
+
+Test Suites: 4 passed, 4 total
+Tests:       24 passed, 24 total
+Snapshots:   0 total
+Time:        0.543 s, estimated 1 s
+Ran all test suites.
+
+=== services/notifications
+Running one project: unitaire
+PASS unitaire src/entrees/annonce-publiee.consommateur.spec.ts
+  AnnoncePublieeConsommateur — accusé de réception manuel
+    ✓ accuse réception après l’enregistrement des notifications, jamais avant (2 ms)
+    ✓ refuse sans remise en file un événement qui ne respecte pas le contrat : il part en file des échecs
+    ✓ remet le message en file à la première panne du traitement (4 ms)
+    ✓ envoie le message en file des échecs à la seconde panne : pas de boucle sans fin
+
+PASS unitaire src/application/notifier-membres-interesses.spec.ts
+  NotifierMembresInteresses (US-04)
+    ✓ crée une notification pour le membre intéressé, avec les données de l’événement (2 ms)
+    ✓ ne notifie ni le membre qui n’a pas choisi la catégorie, ni l’auteur
+    ✓ est idempotent : le même événement traité deux fois ne crée qu’une notification
+    ✓ rend le nombre de membres notifiés (1 ms)
+
+PASS unitaire src/application/centres-interet.spec.ts
+  DefinirCentresInteret et LireCentresInteret (US-02)
+    ✓ remplace la liste du membre et rend la liste enregistrée (1 ms)
+    ✓ ne modifie rien quand une catégorie est inconnue (1 ms)
+    ✓ rend une liste vide pour un membre qui n’a rien choisi
+
+PASS unitaire src/application/lister-notifications.spec.ts
+  ListerNotifications (US-03)
+    ✓ rend les notifications du membre, de la plus récente à la plus ancienne, et aucune d’un autre membre (1 ms)
+    ✓ borne la liste
+
+PASS unitaire src/domaine/evenement-annonce-publiee.spec.ts
+  lireEvenement — contrat « annonce.publiee » version 1
+    ✓ accepte l’exemple du document d’architecture (1 ms)
+    ✓ ne garde que les champs du contrat (1 ms)
+    ✓ refuse un texte au lieu d’un objet (1 ms)
+    ✓ refuse une valeur nulle (1 ms)
+    ✓ refuse un autre type d’événement
+    ✓ refuse une version inconnue
+    ✓ refuse un identifiant d’événement absent
+    ✓ refuse des données absentes
+    ✓ refuse un identifiant d’annonce qui n’est pas un UUID
+    ✓ refuse un auteur qui n’est pas un UUID
+    ✓ refuse un titre vide (1 ms)
+    ✓ refuse un titre trop long
+    ✓ refuse une catégorie hors liste
+    ✓ refuse un type d’annonce hors liste
+
+PASS unitaire src/domaine/centres-interet.spec.ts
+  centres d’intérêt
+    ✓ la liste fermée des catégories est celle du contrat de l’événement (1 ms)
+    ✓ garde les catégories choisies, dans l’ordre de la liste de référence
+    ✓ ne garde qu’une fois une catégorie répétée
+    ✓ accepte une liste vide : le membre ne veut plus être notifié
+    ✓ refuse une catégorie hors de la liste fermée (2 ms)
+
+PASS unitaire src/domaine/correspondance.spec.ts
+  destinataires d’une annonce
+    ✓ notifie les membres intéressés par la catégorie (1 ms)
+    ✓ ne notifie pas l'auteur de sa propre annonce (hypothèse H4)
+    ✓ ne notifie personne quand aucun membre n’est intéressé
+    ✓ ne notifie un membre qu’une fois (1 ms)
+
+Test Suites: 7 passed, 7 total
+Tests:       36 passed, 36 total
+Snapshots:   0 total
+Time:        0.597 s, estimated 1 s
+Ran all test suites.

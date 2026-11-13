@@ -5,6 +5,7 @@ module.exports = {
   ...base,
   rootDir: __dirname,
   testRegex: 'src/.*\\.spec\\.ts$',
-  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts', '!src/index.ts'],
+  // demarrage.ts est du code de démarrage, comme le main.ts des services : il ne s'exécute que dans les conteneurs.
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts', '!src/index.ts', '!src/demarrage.ts'],
   coverageDirectory: 'coverage',
 };

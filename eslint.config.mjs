@@ -10,6 +10,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   security.configs.recommended,
   {
+    // Scripts Node.js en modules ES (tests/indicateur-i1.mjs).
+    files: ['**/*.mjs'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+  },
+  {
     // Fichiers de configuration en CommonJS.
     files: ['**/*.cjs'],
     languageOptions: { globals: { module: 'writable', require: 'readonly', __dirname: 'readonly' } },

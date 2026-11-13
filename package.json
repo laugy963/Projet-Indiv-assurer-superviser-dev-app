@@ -22,7 +22,8 @@
     "test:acceptation": "npm run test -w @epouvante/tests-acceptation",
     "env:integration": "tests/environnement/demarrer.sh",
     "env:acceptation": "tests/environnement/demarrer.sh acceptation",
-    "env:arret": "tests/environnement/arreter.sh"
+    "env:arret": "tests/environnement/arreter.sh",
+    "preuves": "tests/rejouer.sh"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
