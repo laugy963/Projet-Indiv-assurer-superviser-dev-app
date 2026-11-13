@@ -1,7 +1,7 @@
 # Étape 3 — Architecture technique
 
 - Date : 12 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 13 novembre 2026
 - Complète : [exigences et backlog](03-exigences-et-backlog.md)
 - Schéma : [architecture technique](schemas/architecture-technique.md)
 

@@ -1,7 +1,7 @@
 # Étape 3 — Exigences et backlog
 
 - Date : 12 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 13 novembre 2026
 - Complété par : [architecture technique](03-architecture.md)
 
 ## 1. Objet
