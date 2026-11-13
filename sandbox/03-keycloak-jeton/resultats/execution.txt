@@ -1,0 +1,71 @@
+=== Expérimentation 3 — Keycloak : jeton, rôles, vérification par un service — 2026-11-13 12:24:06
+Cluster : v1.35.5+k3s1
+
+--- Préparation
+Image bac-a-sable/verificateur:1 construite et importée dans le cluster
+PostgreSQL prêt en 7 s : postgres (PostgreSQL) 18.7
+Keycloak prêt en 26 s (téléchargement de l'image et création de la base compris)
+Utilisateur du conteneur Keycloak : uid=1000(keycloak) gid=0(root) groups=0(root)
+Comptes de test créés : membre-test (rôle membre), moderateur-test (rôle moderateur)
+
+--- Test 1 : Keycloak est joignable en HTTPS et annonce la bonne adresse d'émetteur
+  RÉUSSI  émetteur annoncé par Keycloak : https://auth.epouvante.test/realms/epouvante
+
+--- Test 2 : obtention d'un jeton et lecture de son contenu
+  RÉUSSI  jeton obtenu pour membre-test : oui
+  RÉUSSI  émetteur écrit dans le jeton : https://auth.epouvante.test/realms/epouvante
+  RÉUSSI  durée de vie du jeton, en secondes : 120
+  RÉUSSI  le jeton de membre-test porte le rôle membre : true
+  RÉUSSI  le jeton de membre-test ne porte pas le rôle moderateur : false
+Revendications utiles du jeton de membre-test :
+    {
+      "iss": "https://auth.epouvante.test/realms/epouvante",
+      "azp": "tests",
+      "typ": "Bearer",
+      "duree": 120,
+      "roles": [
+        "membre",
+        "offline_access",
+        "uma_authorization",
+        "default-roles-epouvante"
+      ],
+      "sub_present": true
+    }
+Algorithme de signature : RS256
+
+--- Test 3 : le service vérifie le jeton et le rôle
+  RÉUSSI  route /membre sans jeton : 401
+  RÉUSSI  route /membre avec le jeton d'un membre : 200
+  RÉUSSI  route /membre avec une signature falsifiée : 401
+  RÉUSSI  route /moderateur avec le jeton d'un membre : 403
+  RÉUSSI  route /moderateur avec un jeton modifié pour s'attribuer le rôle : 401
+  RÉUSSI  route /moderateur avec le jeton d'un modérateur : 200
+
+--- Test 4 : Keycloak arrêté, le service vérifie encore un jeton valide
+  RÉUSSI  route /membre avec un jeton valide, Keycloak arrêté : 200
+  RÉUSSI  demande d'un nouveau jeton, Keycloak arrêté : 503
+Keycloak de nouveau prêt en 22 s (redémarrage, image et base déjà en place)
+
+--- Test 5 : un jeton expiré est refusé
+Attente de l'expiration du premier jeton : 98 s
+  RÉUSSI  route /membre avec un jeton expiré : 401
+Motifs de refus relevés dans le journal du service (jamais renvoyés au client) :
+       2 {"etat":"jeton-refuse","motif":"ERR_JWS_SIGNATURE_VERIFICATION_FAILED"}
+       1 {"etat":"jeton-refuse","motif":"ERR_JWT_EXPIRED"}
+
+--- Test 6 : redémarrage de la base de données, les comptes sont conservés
+Base redémarrée et jeton de nouveau délivré en 3 s
+  RÉUSSI  jeton obtenu après le redémarrage de la base : oui
+  RÉUSSI  route /membre avec ce nouveau jeton : 200
+
+--- Test 7 : un compte sans courriel, prénom ni nom n'obtient pas de jeton
+  RÉUSSI  code HTTP de la demande de jeton pour le compte incomplet : 400
+Réponse de Keycloak : {"error":"invalid_grant","error_description":"Account is not fully set up"}
+
+--- Mémoire et processeur (kubectl top, mesure instantanée)
+NAME                            CPU(cores)   MEMORY(bytes)   
+keycloak-699875f6d9-ts5xk       118m         501Mi           
+postgresql-0                    21m          28Mi            
+verificateur-7c99f48bb7-trgmb   1m           62Mi            
+
+BILAN : tous les contrôles sont réussis

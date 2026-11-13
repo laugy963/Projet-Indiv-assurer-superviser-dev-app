@@ -1,0 +1,35 @@
+# Producteur de test : joue le rôle du service annonces.
+# run.sh remplace __NOM__, __NB__, __PREFIXE__ et __DEFECTUEUX__ avant d'appliquer ce fichier.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __NOM__
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: producteur
+          image: bac-a-sable/client-amqp:1
+          imagePullPolicy: Never
+          command: ["node", "producteur.js"]
+          env:
+            - {name: NB, value: "__NB__"}
+            - {name: PREFIXE, value: "__PREFIXE__"}
+            - {name: DEFECTUEUX, value: "__DEFECTUEUX__"}
+            - name: AMQP_UTILISATEUR
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: utilisateur}}
+            - name: AMQP_MOT_DE_PASSE
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 128Mi}

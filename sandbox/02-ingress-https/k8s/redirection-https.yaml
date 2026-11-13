@@ -1,0 +1,18 @@
+# Réglage du Traefik fourni par k3s : toute requête HTTP est redirigée vers HTTPS.
+# k3s installe Traefik par un chart Helm ; un objet HelmChartConfig en modifie les valeurs.
+# La clé dépend de la version du chart : ici le chart 39.0.7 (Traefik 3.6), vérifié le 13 novembre 2026.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik              # nom imposé : c'est celui du chart à régler
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true

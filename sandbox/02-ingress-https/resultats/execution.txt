@@ -1,0 +1,60 @@
+=== Expérimentation 2 — Ingress HTTPS, Traefik et cert-manager — 2026-11-13 12:09:12
+Cluster : v1.35.5+k3s1
+Traefik : rancher/mirrored-library-traefik:3.6.13
+
+--- Installation de cert-manager par Helm
+cert-manager v1.21.3 prêt en 3 s (téléchargement des images compris à la première exécution)
+  cert-manager-7b64759498-f6dtq  1/1  Running
+  cert-manager-cainjector-5d85cc9c99-l8rjn  1/1  Running
+  cert-manager-webhook-674b6c7468-wczvw  1/1  Running
+
+--- Test 1 : redirection de HTTP vers HTTPS
+  RÉUSSI  réponse à une requête HTTP : 301 https://api.epouvante.test/
+
+--- Préparation : autorité de certification locale et service de démonstration
+Autorité de certification locale prête
+Service déployé et certificat émis en 2 s
+
+--- Test 2 : le certificat est émis par cert-manager à partir d'une annotation de l'Ingress
+  RÉUSSI  état du certificat api-tls : True
+  RÉUSSI  type du Secret api-tls : kubernetes.io/tls
+
+--- Test 3 : appel HTTPS vérifié avec le certificat de l'autorité locale
+  RÉUSSI  code HTTP et résultat de la vérification TLS (0 = chaîne valide) : 200 0
+Certificat présenté par Traefik :
+    subject=
+    issuer=CN=AC locale du bac a sable
+    notBefore=Nov 13 11:09:37 2026 GMT
+    notAfter=Nov 13 12:09:37 2026 GMT
+    X509v3 Subject Alternative Name: critical
+        DNS:api.epouvante.test
+
+--- Test 4 : sans le certificat de l'autorité locale, le client refuse la connexion
+  RÉUSSI  code de sortie de curl (60 = certificat non reconnu) : 60
+    curl: (60) SSL certificate problem: unable to get local issuer certificate
+    More details here: https://curl.se/docs/sslcerts.html
+
+--- Test 5 : renouvellement automatique, sans redémarrage de Traefik
+Avant : révision 1, serial=30005CF1A34B9F45E68A69580D4A442F2ADE0153
+Le certificat dure 1 h et se renouvelle 59 min avant sa fin : attente du renouvellement...
+Après 62 s : révision 2, serial=6FE66356E04FA766999D134306D96D7D9C2A043E
+  RÉUSSI  le certificat servi a changé : oui
+  RÉUSSI  le pod Traefik est le même : traefik-5f7d47cf7d-xfhw7
+  RÉUSSI  redémarrages de Traefik pendant le test : 0
+  RÉUSSI  l'appel HTTPS vérifié fonctionne toujours : 200 0
+
+--- Test 6 : retour à la durée par défaut, et réémission après suppression du Secret
+  RÉUSSI  Secret api-tls recréé par cert-manager : kubernetes.io/tls
+  RÉUSSI  validité restante du nouveau certificat, en jours : 89
+    notBefore=Nov 13 11:10:44 2026 GMT
+    notAfter=Feb 11 11:10:44 2027 GMT
+  RÉUSSI  l'appel HTTPS vérifié fonctionne après la réémission : 200 0
+
+--- Mémoire et processeur (kubectl top, mesure instantanée)
+NAME                                       CPU(cores)   MEMORY(bytes)   
+cert-manager-7b64759498-f6dtq              9m           31Mi            
+cert-manager-cainjector-5d85cc9c99-l8rjn   1m           18Mi            
+cert-manager-webhook-674b6c7468-wczvw      1m           12Mi            
+traefik-5f7d47cf7d-xfhw7   1m    26Mi   
+
+BILAN : tous les contrôles sont réussis

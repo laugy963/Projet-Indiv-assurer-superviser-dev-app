@@ -1,0 +1,34 @@
+# Consommateur de test : joue le rôle du service notifications.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consommateur
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: consommateur}
+  template:
+    metadata:
+      labels: {app: consommateur}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: consommateur
+          image: bac-a-sable/client-amqp:1
+          imagePullPolicy: Never     # image importée dans le cluster par k3d, absente de tout registre
+          command: ["node", "consommateur.js"]
+          env:
+            - {name: MODE, value: normal}
+            - name: AMQP_UTILISATEUR
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: utilisateur}}
+            - name: AMQP_MOT_DE_PASSE
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 128Mi}

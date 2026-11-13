@@ -1,0 +1,70 @@
+# RabbitMQ sur Kubernetes : un nœud, avec un stockage durable.
+# Le Secret « rabbitmq-compte » est créé par run.sh, avec un mot de passe aléatoire.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels: {app: rabbitmq}
+spec:
+  clusterIP: None            # service « headless » : donne un nom DNS stable au pod du StatefulSet
+  selector: {app: rabbitmq}
+  ports:
+    - {name: amqp, port: 5672}
+    - {name: console, port: 15672}
+---
+# StatefulSet et non Deployment : le pod garde le même nom (rabbitmq-0) et le même volume.
+# RabbitMQ range ses données sous le nom de son nœud : un nom qui change les rendrait introuvables.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+spec:
+  serviceName: rabbitmq
+  replicas: 1
+  selector:
+    matchLabels: {app: rabbitmq}
+  template:
+    metadata:
+      labels: {app: rabbitmq}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100         # utilisateur « rabbitmq » de l'image
+        runAsGroup: 101
+        fsGroup: 101           # donne au groupe l'accès au volume
+        # Sans cette ligne, Kubernetes réapplique les droits du groupe sur tout le volume à chaque démarrage du pod.
+        # Le fichier .erlang.cookie devient alors lisible par le groupe, et RabbitMQ refuse de redémarrer :
+        # « Cookie file must be accessible by owner only ». Constaté le 13 novembre 2026.
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.4.0-management-alpine
+          ports:
+            - {name: amqp, containerPort: 5672}
+            - {name: console, containerPort: 15672}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: utilisateur}}
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom: {secretKeyRef: {name: rabbitmq-compte, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 512Mi}
+          readinessProbe:      # le pod ne reçoit du trafic que quand le broker accepte les connexions
+            exec: {command: ["rabbitmq-diagnostics", "-q", "check_port_connectivity"]}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 10
+          volumeMounts:
+            - {name: donnees, mountPath: /var/lib/rabbitmq}
+  volumeClaimTemplates:
+    - metadata:
+        name: donnees
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: {storage: 1Gi}

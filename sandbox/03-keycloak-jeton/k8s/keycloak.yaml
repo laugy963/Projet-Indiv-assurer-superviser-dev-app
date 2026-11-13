@@ -1,0 +1,69 @@
+# Keycloak : serveur d'identité, en mode production derrière l'Ingress HTTPS.
+# Les Secrets « postgresql-compte » et « keycloak-admin » et le ConfigMap « royaume » sont créés par run.sh.
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  selector: {app: keycloak}
+  ports:
+    - {name: http, port: 8080, targetPort: http}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: keycloak}
+  template:
+    metadata:
+      labels: {app: keycloak}
+    spec:
+      securityContext:
+        runAsNonRoot: true     # l'image tourne avec l'utilisateur 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.8.2
+          # « start » = mode production. Le royaume du projet est importé au premier démarrage.
+          args: ["start", "--import-realm"]
+          ports:
+            - {name: http, containerPort: 8080}
+            - {name: gestion, containerPort: 9000}     # sondes de santé
+          env:
+            - {name: KC_DB, value: postgres}
+            - {name: KC_DB_URL, value: "jdbc:postgresql://postgresql:5432/keycloak"}
+            - {name: KC_DB_USERNAME, value: keycloak}
+            - name: KC_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: postgresql-compte, key: mot-de-passe}}
+            # Adresse publique : c'est elle qui est écrite comme émetteur dans les jetons.
+            - {name: KC_HOSTNAME, value: "https://auth.epouvante.test"}
+            # Le HTTPS est terminé par Traefik : Keycloak reçoit du HTTP et lit les en-têtes X-Forwarded-*.
+            - {name: KC_HTTP_ENABLED, value: "true"}
+            - {name: KC_PROXY_HEADERS, value: xforwarded}
+            - {name: KC_HEALTH_ENABLED, value: "true"}
+            # Compte d'administration provisoire, créé au premier démarrage.
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom: {secretKeyRef: {name: keycloak-admin, key: utilisateur}}
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom: {secretKeyRef: {name: keycloak-admin, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 1Gi}
+          startupProbe:          # laisse jusqu'à 5 minutes au premier démarrage
+            httpGet: {path: /health/started, port: gestion}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /health/ready, port: gestion}
+            periodSeconds: 5
+          volumeMounts:
+            - {name: royaume, mountPath: /opt/keycloak/data/import, readOnly: true}
+      volumes:
+        - name: royaume
+          configMap: {name: royaume}

@@ -1,0 +1,26 @@
+{
+  "realm": "epouvante",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 120,
+  "roles": {
+    "realm": [
+      { "name": "membre", "description": "Inscrit de l'espace communautaire" },
+      { "name": "moderateur", "description": "Peut retirer une annonce" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "tests",
+      "name": "Client réservé aux tests automatisés",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false
+    }
+  ]
+}

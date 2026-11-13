@@ -1,0 +1,10 @@
+{
+  "name": "bac-a-sable-client-amqp",
+  "version": "1.0.0",
+  "description": "Producteur et consommateur de test pour l'expérimentation RabbitMQ",
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "amqplib": "^2.3.1"
+  }
+}

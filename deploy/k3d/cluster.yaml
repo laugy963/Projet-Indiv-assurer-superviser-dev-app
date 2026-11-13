@@ -1,0 +1,29 @@
+# Cluster Kubernetes local du projet : k3s lancé dans Docker par k3d.
+# Créer :    k3d cluster create --config deploy/k3d/cluster.yaml
+# Supprimer : k3d cluster delete epouvante
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: epouvante
+# Un seul nœud : le poste n'a que 8 Go de mémoire.
+servers: 1
+agents: 0
+# Version figée : la même distribution que sur l'environnement distant (fiche 0003).
+image: rancher/k3s:v1.35.5-k3s1
+ports:
+  # Les ports HTTP et HTTPS de Traefik sont publiés sur le poste,
+  # sur l'adresse locale seulement : le cluster n'est pas joignable depuis le réseau.
+  - port: 127.0.0.1:80:80
+    nodeFilters:
+      - loadbalancer
+  - port: 127.0.0.1:443:443
+    nodeFilters:
+      - loadbalancer
+options:
+  k3d:
+    wait: true
+    timeout: "180s"
+  kubeconfig:
+    # Ne modifie pas ~/.kube/config : le fichier d'accès est écrit dans le projet (voir env.sh).
+    updateDefaultKubeconfig: false
+    switchCurrentContext: false

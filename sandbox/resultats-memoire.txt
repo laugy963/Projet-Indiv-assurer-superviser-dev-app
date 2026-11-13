@@ -1,0 +1,39 @@
+=== Mémoire consommée, tous composants en marche — 2026-11-13 12:28:16
+Poste : Apple M1, 8 Go de mémoire physique
+Moteur de conteneurs : Docker Desktop, 8 processeurs, 3.83 Gio alloués
+
+--- Mémoire de la machine virtuelle de Docker (en Mio)
+MemTotal: 3918
+MemAvailable: 1300
+
+--- Nœud du cluster (kubectl top node)
+NAME                     CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+k3d-epouvante-server-0   340m         4%       2043Mi          52%         
+
+--- Pods, du plus gourmand au moins gourmand (kubectl top pod)
+NAMESPACE              NAME                                       CPU(cores)   MEMORY(bytes)   
+bac-a-sable-identite   keycloak-699875f6d9-ts5xk                  118m         501Mi           
+bac-a-sable-broker     rabbitmq-0                                 80m          104Mi           
+bac-a-sable-identite   verificateur-7c99f48bb7-trgmb              1m           62Mi            
+cert-manager           cert-manager-7b64759498-f6dtq              3m           46Mi            
+kube-system            traefik-5f7d47cf7d-xfhw7                   6m           35Mi            
+kube-system            metrics-server-786d997795-56l6k            9m           31Mi            
+bac-a-sable-identite   postgresql-0                               21m          28Mi            
+cert-manager           cert-manager-cainjector-5d85cc9c99-l8rjn   2m           26Mi            
+cert-manager           cert-manager-webhook-674b6c7468-wczvw      2m           25Mi            
+kube-system            coredns-8db54c48d-4sx4b                    5m           23Mi            
+bac-a-sable-broker     consommateur-cdcbb976c-2l4m6               1m           20Mi            
+kube-system            local-path-provisioner-5d9d9885bc-9htbq    1m           16Mi            
+bac-a-sable-https      whoami-85f74648d8-czlnc                    1m           4Mi             
+kube-system            svclb-traefik-bd6fe22e-q5n7k               0m           0Mi             
+
+Somme de la mémoire des pods : 921 Mio
+
+--- Conteneurs Docker du poste (docker stats) : le cluster k3d et les conteneurs déjà présents
+NAME                      MEM USAGE / LIMIT     CPU %
+k3d-epouvante-serverlb    9.832MiB / 3.827GiB   0.00%
+k3d-epouvante-server-0    1.994GiB / 3.827GiB   55.53%
+mongodb-mongo-1           111.5MiB / 3.827GiB   1.11%
+mongodb-mongo-express-1   32.84MiB / 3.827GiB   0.00%
+mariadb-db-1              7.703MiB / 3.827GiB   0.02%
+mariadb-phpmyadmin-1      13.8MiB / 3.827GiB    0.01%

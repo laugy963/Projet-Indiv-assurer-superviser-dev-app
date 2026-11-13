@@ -1,0 +1,54 @@
+=== Expérimentation 1 — RabbitMQ sur Kubernetes — 2026-11-13 12:02:38
+Cluster : v1.35.5+k3s1
+
+--- Préparation
+Image bac-a-sable/client-amqp:1 construite et importée dans le cluster
+RabbitMQ prêt en 18 s (téléchargement de l'image compris à la première exécution)
+Version : RabbitMQ 4.4.0
+Utilisateur du conteneur : uid=100(rabbitmq) gid=101(rabbitmq) groups=101(rabbitmq)
+Règle des messages en échec posée
+
+--- Test 1 : publication et consommation, consommateur en marche
+{"etat":"publies","prefixe":"t1","nombre":100,"confirmesParLeBroker":true}
+  RÉUSSI  messages traités : 100
+
+--- Test 2 : publication pendant que le consommateur est arrêté
+Consommateur arrêté en 1 s (délai maximal accordé par Kubernetes : 30 s)
+{"etat":"publies","prefixe":"t2","nombre":100,"confirmesParLeBroker":true}
+  RÉUSSI  messages en attente dans la file, consommateur arrêté : 100
+  RÉUSSI  messages traités après le redémarrage du consommateur : 100
+
+--- Test 3 : redémarrage du broker avec des messages en attente
+{"etat":"publies","prefixe":"t3","nombre":50,"confirmesParLeBroker":true}
+  RÉUSSI  messages en attente avant l'arrêt du broker : 50
+Broker de nouveau prêt en 13 s
+  RÉUSSI  messages toujours en attente après le redémarrage du broker : 50
+  RÉUSSI  messages traités après le redémarrage du broker : 50
+
+--- Test 4 : panne du consommateur avant l'accusé de réception
+{"etat":"publies","prefixe":"t4","nombre":1,"confirmesParLeBroker":true}
+Journal du conteneur avant la panne :
+    {"etat":"recu","id":"t4-001","dejaRemis":false}
+    {"etat":"panne-simulee","id":"t4-001"}
+Journal du conteneur après le redémarrage :
+    {"etat":"recu","id":"t4-001","dejaRemis":true}
+    {"etat":"traite","id":"t4-001","dejaRemis":true}
+  RÉUSSI  redémarrages du conteneur : 1
+  RÉUSSI  message remis par le broker, puis traité : 1
+
+--- Test 5 : message refusé, envoyé vers la file des messages en échec
+{"etat":"publies","prefixe":"t5","nombre":1,"confirmesParLeBroker":true}
+  RÉUSSI  messages dans la file des messages en échec : 1
+  RÉUSSI  messages restés dans la file principale : 0
+
+--- État final des files
+name	durable	messages
+notifications.annonce-publiee.echecs	true	1
+notifications.annonce-publiee	true	0
+
+--- Mémoire et processeur (kubectl top, mesure instantanée)
+NAME                           CPU(cores)   MEMORY(bytes)   
+consommateur-cdcbb976c-2l4m6   1m           15Mi            
+rabbitmq-0                     87m          90Mi            
+
+BILAN : tous les contrôles sont réussis

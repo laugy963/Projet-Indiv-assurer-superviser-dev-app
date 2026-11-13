@@ -21,6 +21,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 - `docs/01-cadrage.md` — périmètre, décisions, contraintes, questions ouvertes, risques
 - `docs/02-processus-developpement.md` — indicateurs I1 à I4, cycle DevSecOps, jobs du pipeline, stratégie de tests ; `docs/02-competences-et-formation.md` — cartographie, recrutement, formation
 - `docs/03-exigences-et-backlog.md` — exigences EF et ENF, user stories US-01 à US-06, critères d'acceptation CA-01 à CA-19 ; `docs/03-architecture.md` — composants, API, événement, données, sécurité, limites du prototype
+- `docs/experimentations/README.md` — synthèse du bac à sable : résultats, mémoire mesurée, règles techniques à appliquer aux étapes 5 et 7 (paragraphe 5) ; un protocole par expérimentation à côté
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
 - `docs/journal.md` — journal de bord : actions réellement menées et leurs résultats
@@ -58,6 +59,10 @@ Les fiches ADR font foi ; ceci n'est qu'un résumé.
 
 Le code arrive à l'étape 5. Ajouter ici les commandes (install, lint, test, build, déploiement) dès qu'elles existent et ont été exécutées avec succès.
 
+- Cluster local k3d, détail dans `deploy/k3d/README.md` (exécutées le 13 novembre 2026) :
+  créer `k3d cluster create --config deploy/k3d/cluster.yaml` ; relancer ou arrêter `k3d cluster start epouvante`, `k3d cluster stop epouvante` ; accès `source deploy/k3d/env.sh` avant tout `kubectl` ou `helm` (fichier d'accès propre au projet, `~/.kube/config` n'est pas utilisé).
+  Arrêter le cluster après usage : il occupe environ 2 Gio sur les 3,83 Gio du moteur Docker. Après un `start`, compter 4 à 5 minutes avant que tous les pods soient prêts.
+- Rejouer le bac à sable (exécutées le 13 novembre 2026) : `sandbox/01-broker-rabbitmq/run.sh`, `sandbox/02-ingress-https/run.sh` puis `sandbox/03-keycloak-jeton/run.sh` (la 3 dépend de la 2), `sandbox/memoire.sh`.
 - Exporter un schéma draw.io en image, depuis la racine du dépôt (exécutée le 12 novembre 2026, draw.io 29.6.1) :
   `/Applications/draw.io.app/Contents/MacOS/draw.io -x -f png -s 2 -b 10 -o docs/schemas/<nom>.png docs/schemas/<nom>.drawio`
 

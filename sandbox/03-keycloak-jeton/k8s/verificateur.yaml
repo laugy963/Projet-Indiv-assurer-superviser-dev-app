@@ -1,0 +1,45 @@
+# Vérificateur de jetons : joue le rôle d'un service du prototype.
+apiVersion: v1
+kind: Service
+metadata:
+  name: verificateur
+spec:
+  selector: {app: verificateur}
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verificateur
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: verificateur}
+  template:
+    metadata:
+      labels: {app: verificateur}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: verificateur
+          image: bac-a-sable/verificateur:1
+          imagePullPolicy: Never     # image importée dans le cluster par k3d
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            # L'émetteur attendu est l'adresse publique de Keycloak : celle qui figure dans les jetons.
+            - {name: EMETTEUR, value: "https://auth.epouvante.test/realms/epouvante"}
+            # Les clés publiques sont lues par le réseau interne du cluster, sans repasser par l'Ingress.
+            - {name: URL_CLES, value: "http://keycloak:8080/realms/epouvante/protocol/openid-connect/certs"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 128Mi}
+          readinessProbe:
+            httpGet: {path: /sante, port: http}

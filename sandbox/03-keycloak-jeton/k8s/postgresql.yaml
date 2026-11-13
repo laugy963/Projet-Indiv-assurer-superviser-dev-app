@@ -1,0 +1,62 @@
+# PostgreSQL : la base de Keycloak. Le Secret « postgresql-compte » est créé par run.sh.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+spec:
+  clusterIP: None
+  selector: {app: postgresql}
+  ports:
+    - {name: sql, port: 5432}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+spec:
+  serviceName: postgresql
+  replicas: 1
+  selector:
+    matchLabels: {app: postgresql}
+  template:
+    metadata:
+      labels: {app: postgresql}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70          # utilisateur « postgres » de l'image alpine
+        runAsGroup: 70
+        fsGroup: 70
+        # Même précaution que pour RabbitMQ : ne pas retoucher les droits du volume à chaque démarrage.
+        # PostgreSQL refuse un dossier de données lisible par le groupe.
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: postgresql
+          image: postgres:18.7-alpine
+          ports:
+            - {name: sql, containerPort: 5432}
+          env:
+            - {name: POSTGRES_DB, value: keycloak}
+            - {name: POSTGRES_USER, value: keycloak}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: postgresql-compte, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 256Mi}
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", "keycloak", "-d", "keycloak"]}
+            periodSeconds: 5
+          volumeMounts:
+            # PostgreSQL 18 range ses données sous /var/lib/postgresql/18 : le volume se monte un niveau au-dessus.
+            - {name: donnees, mountPath: /var/lib/postgresql}
+  volumeClaimTemplates:
+    - metadata:
+        name: donnees
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: {storage: 1Gi}

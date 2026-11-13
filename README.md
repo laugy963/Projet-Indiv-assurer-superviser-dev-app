@@ -17,7 +17,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 1 | Cadrage | Terminée |
 | 2 | Processus de développement | Terminée |
 | 3 | Exigences et architecture | Terminée |
-| 4 | Bac à sable | À faire |
+| 4 | Bac à sable | Terminée |
 | 5 | Développement du prototype | À faire |
 | 6 | Pipeline CI/CD | À faire |
 | 7 | Déploiement, observabilité, charge | À faire |
@@ -60,9 +60,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 3. [Compétences et formation](docs/02-competences-et-formation.md)
 4. [Exigences et backlog](docs/03-exigences-et-backlog.md)
 5. [Architecture technique](docs/03-architecture.md), avec son [schéma](docs/schemas/architecture-technique.md)
-6. [Fiches de décision](docs/adr/README.md)
-7. [Rétroplanning](docs/retroplanning.md)
-8. [Journal de bord](docs/journal.md)
+6. [Bac à sable : synthèse des expérimentations](docs/experimentations/README.md)
+7. [Fiches de décision](docs/adr/README.md)
+8. [Rétroplanning](docs/retroplanning.md)
+9. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 

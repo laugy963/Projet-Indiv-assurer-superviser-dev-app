@@ -1,0 +1,38 @@
+# Émetteurs de certificats pour le cluster local.
+# En local, aucune autorité publique ne peut joindre le poste : on crée notre propre autorité de certification.
+#
+# 1. Un émetteur auto-signé, qui ne sert qu'à signer le certificat de notre autorité.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: auto-signe
+spec:
+  selfSigned: {}
+---
+# 2. Le certificat de l'autorité de certification locale. Sa clé privée reste dans un Secret du cluster.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ac-locale
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: AC locale du bac a sable
+  secretName: ac-locale
+  duration: 8760h            # un an
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: auto-signe
+    kind: ClusterIssuer
+---
+# 3. L'émetteur utilisé par les Ingress : il signe avec l'autorité locale.
+#    Sur l'environnement distant, il sera remplacé par un émetteur ACME (Let's Encrypt) : rien d'autre ne change.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ac-locale
+spec:
+  ca:
+    secretName: ac-locale

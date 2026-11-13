@@ -1,0 +1,28 @@
+# Un Ingress HTTPS pour Keycloak et pour le vérificateur.
+# Le certificat est émis par l'autorité locale mise en place dans l'expérimentation 2.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: identite
+  annotations:
+    cert-manager.io/cluster-issuer: ac-locale
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [auth.epouvante.test, verificateur.epouvante.test]
+      secretName: identite-tls
+  rules:
+    - host: auth.epouvante.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: keycloak, port: {name: http}}
+    - host: verificateur.epouvante.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: verificateur, port: {name: http}}

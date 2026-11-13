@@ -1,0 +1,11 @@
+{
+  "name": "bac-a-sable-verificateur",
+  "version": "1.0.0",
+  "description": "Petit serveur HTTP qui vérifie un jeton de Keycloak et le rôle qu'il porte",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "jose": "^6.2.17"
+  }
+}
