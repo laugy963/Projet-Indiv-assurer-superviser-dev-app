@@ -1,5 +1,7 @@
-import { lireVariable, type ReglagesOidc } from '@epouvante/socle';
+import type { ReglagesOidc } from '../securite/verificateur-jeton-oidc';
+import { lireVariable } from './variables';
 
+/** Réglages d'un service : les mêmes pour les deux, seules les valeurs changent. */
 export interface Reglages {
   port: number;
   bdd: { hote: string; port: number; nom: string; utilisateur: string; motDePasse: string };

@@ -1,7 +1,7 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SocleModule } from '@epouvante/socle';
+import { SocleModule, urlBroker, type Reglages } from '@epouvante/socle';
 import { AnnonceEntite } from './adaptateurs/annonce.entite';
 import { optionsBaseDeDonnees } from './adaptateurs/base-de-donnees';
 import { DepotAnnoncesTypeOrm } from './adaptateurs/depot-annonces.typeorm';
@@ -12,8 +12,6 @@ import { RetirerAnnonce } from './application/retirer-annonce';
 import { EXCHANGE_ANNONCES } from './domaine/evenements';
 import { DepotAnnonces, EmetteurEvenements } from './domaine/ports';
 import { AnnoncesControleur } from './entrees/annonces.controleur';
-import { SanteControleur } from './entrees/sante.controleur';
-import { urlBroker, type Reglages } from './reglages';
 
 /** Assemble le service : c'est ici, et seulement ici, que chaque port reçoit son adaptateur. */
 @Module({})
@@ -42,7 +40,7 @@ export class AnnoncesModule {
           },
         ]),
       ],
-      controllers: [AnnoncesControleur, SanteControleur],
+      controllers: [AnnoncesControleur],
       providers: [
         PublierAnnonce,
         ListerAnnonces,

@@ -1,6 +1,6 @@
+import type { Reglages } from '@epouvante/socle';
 import type { DataSourceOptions } from 'typeorm';
 import { CreerAnnonces1763000000000 } from '../migrations/1763000000000-creer-annonces';
-import type { Reglages } from '../reglages';
 import { AnnonceEntite } from './annonce.entite';
 
 /** Réglages de TypeORM, partagés par le service et par le programme de migration. */
