@@ -76,6 +76,20 @@ export class SondeBroker {
     return (await this.canal.checkQueue(file)).messageCount;
   }
 
+  /**
+   * Messages que le service n'a pas encore accusés : en attente dans la file, ou remis et en cours de traitement.
+   * Lu par l'API de gestion du broker, seule à compter les messages remis mais non accusés.
+   */
+  async enAttenteOuEnCours(file: string): Promise<number> {
+    const identifiants = Buffer.from(`admin-tests:${lireVariable('AMQP_ADMIN_MOT_DE_PASSE')}`).toString('base64');
+    const reponse = await fetch(`http://127.0.0.1:15672/api/queues/%2F/${encodeURIComponent(file)}`, {
+      headers: { Authorization: `Basic ${identifiants}` },
+    });
+    if (!reponse.ok) throw new Error(`API de gestion du broker : ${reponse.status}`);
+    const etat = (await reponse.json()) as { messages?: number };
+    return etat.messages ?? 0;
+  }
+
   async vider(file: string): Promise<void> {
     await this.canal.purgeQueue(file);
   }

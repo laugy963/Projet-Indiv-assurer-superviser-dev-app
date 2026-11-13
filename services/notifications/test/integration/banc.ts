@@ -1,7 +1,8 @@
 // Banc de test d'intégration du service notifications : le banc commun, plus les aides propres à ses tables.
 import { randomUUID } from 'node:crypto';
-import { demarrerBanc as demarrerBancCommun, type Banc } from '@epouvante/socle/outils-de-test';
+import { demarrerBanc as demarrerBancCommun, SondeBroker, type Banc } from '@epouvante/socle/outils-de-test';
 import type { DataSource } from 'typeorm';
+import { brancherConsommateur, FILE_ANNONCE_PUBLIEE } from '../../src/consommation';
 import { NotificationsModule } from '../../src/notifications.module';
 
 export { UUID, type Banc } from '@epouvante/socle/outils-de-test';
@@ -10,8 +11,22 @@ export const MEMBRE_A = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 export const MEMBRE_B = '2b3c4d5e-6f70-4a1b-9c2d-3e4f5a6b7c8d';
 export const MEMBRE_C = '3c4d5e6f-7081-4b2c-8d3e-4f5a6b7c8d9e';
 
+export const FILE = FILE_ANNONCE_PUBLIEE;
+export const FILE_ECHECS = `${FILE_ANNONCE_PUBLIEE}.echecs`;
+
 export function demarrerBanc(): Promise<Banc> {
-  return demarrerBancCommun({ service: 'notifications', module: (reglages) => NotificationsModule.configurer(reglages) });
+  return demarrerBancCommun({
+    service: 'notifications',
+    module: (reglages) => NotificationsModule.configurer(reglages),
+    brancher: async (app, reglages) => {
+      // Les tests d'intégration du service annonces ont pu laisser des événements dans la file :
+      // elle est vidée avant que le service ne commence à la lire.
+      const sonde = await SondeBroker.connecter();
+      await sonde.vider(FILE);
+      await sonde.fermer();
+      await brancherConsommateur(app, reglages);
+    },
+  });
 }
 
 export async function viderLaBase(bdd: DataSource): Promise<void> {
