@@ -5,6 +5,15 @@
   "private": true,
   "license": "UNLICENSED",
   "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "migrer": "node dist/migrer.js",
+    "typage": "tsc -p tsconfig.json",
+    "test:unit": "NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --selectProjects unitaire",
+    "test:int": "NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --selectProjects integration --runInBand",
+    "test:cov": "NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --runInBand --coverage"
+  },
   "dependencies": {
     "@epouvante/socle": "0.1.0",
     "@nestjs/common": "12.5.0",
