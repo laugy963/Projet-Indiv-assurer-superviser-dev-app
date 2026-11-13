@@ -1,62 +1,17 @@
-// Banc de test d'intégration du service notifications :
-// le service complet (module NestJS réel), sa vraie base PostgreSQL, le vrai broker RabbitMQ,
-// et un émetteur de jetons de test à la place de Keycloak (fiche 0013).
+// Banc de test d'intégration du service notifications : le banc commun, plus les aides propres à ses tables.
 import { randomUUID } from 'node:crypto';
-import type { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { EmetteurDeTest, SondeBroker, variablesDuService } from '@epouvante/socle/outils-de-test';
-import request from 'supertest';
-import { DataSource } from 'typeorm';
+import { demarrerBanc as demarrerBancCommun, type Banc } from '@epouvante/socle/outils-de-test';
+import type { DataSource } from 'typeorm';
 import { NotificationsModule } from '../../src/notifications.module';
-import { lireReglages } from '../../src/reglages';
 
-export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export { UUID, type Banc } from '@epouvante/socle/outils-de-test';
 
 export const MEMBRE_A = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 export const MEMBRE_B = '2b3c4d5e-6f70-4a1b-9c2d-3e4f5a6b7c8d';
 export const MEMBRE_C = '3c4d5e6f-7081-4b2c-8d3e-4f5a6b7c8d9e';
 
-export interface Banc {
-  app: INestApplication;
-  emetteur: EmetteurDeTest;
-  sonde: SondeBroker;
-  bdd: DataSource;
-  /** Client HTTP branché sur le service (Supertest). */
-  http(): ReturnType<typeof request>;
-  arreter(): Promise<void>;
-}
-
-export async function demarrerBanc(): Promise<Banc> {
-  const acces = variablesDuService('notifications');
-  const emetteur = await EmetteurDeTest.demarrer();
-  const reglages = lireReglages({
-    ...acces,
-    PORT: '0',
-    OIDC_EMETTEUR: emetteur.emetteur,
-    OIDC_URL_CLES: emetteur.urlCles,
-    OIDC_AUDIENCE: emetteur.audience,
-  });
-
-  const module = await Test.createTestingModule({ imports: [NotificationsModule.configurer(reglages)] }).compile();
-  const app = module.createNestApplication();
-  await app.init();
-
-  const bdd = app.get(DataSource);
-  await bdd.runMigrations();
-  const sonde = await SondeBroker.connecter();
-
-  return {
-    app,
-    emetteur,
-    sonde,
-    bdd,
-    http: () => request(app.getHttpServer()),
-    arreter: async () => {
-      await sonde.fermer();
-      await app.close();
-      await emetteur.arreter();
-    },
-  };
+export function demarrerBanc(): Promise<Banc> {
+  return demarrerBancCommun({ service: 'notifications', module: (reglages) => NotificationsModule.configurer(reglages) });
 }
 
 export async function viderLaBase(bdd: DataSource): Promise<void> {
