@@ -73,6 +73,18 @@ export class Annonce implements EtatAnnonce {
   static reconstituer(etat: EtatAnnonce): Annonce {
     return new Annonce(etat);
   }
+
+  /**
+   * Retrait par un modérateur (US-06). L'annonce n'est pas supprimée : elle garde la trace de la modération.
+   * Rend « false » si elle était déjà retirée : la trace du premier retrait n'est jamais réécrite.
+   */
+  retirer(moderateurId: string, date: Date): boolean {
+    if (this.statut === 'retiree') return false;
+    this.statut = 'retiree';
+    this.retireeLe = date;
+    this.retireePar = moderateurId;
+    return true;
+  }
 }
 
 function verifier(contenu: ContenuAnnonce): void {

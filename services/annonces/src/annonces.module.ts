@@ -6,7 +6,9 @@ import { AnnonceEntite } from './adaptateurs/annonce.entite';
 import { optionsBaseDeDonnees } from './adaptateurs/base-de-donnees';
 import { DepotAnnoncesTypeOrm } from './adaptateurs/depot-annonces.typeorm';
 import { CLIENT_BROKER, EmetteurEvenementsRabbitMq, serialiseurContrat } from './adaptateurs/emetteur-evenements.rabbitmq';
+import { ListerAnnonces } from './application/lister-annonces';
 import { PublierAnnonce } from './application/publier-annonce';
+import { RetirerAnnonce } from './application/retirer-annonce';
 import { EXCHANGE_ANNONCES } from './domaine/evenements';
 import { DepotAnnonces, EmetteurEvenements } from './domaine/ports';
 import { AnnoncesControleur } from './entrees/annonces.controleur';
@@ -43,6 +45,8 @@ export class AnnoncesModule {
       controllers: [AnnoncesControleur, SanteControleur],
       providers: [
         PublierAnnonce,
+        ListerAnnonces,
+        RetirerAnnonce,
         { provide: DepotAnnonces, useClass: DepotAnnoncesTypeOrm },
         { provide: EmetteurEvenements, useClass: EmetteurEvenementsRabbitMq },
       ],

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Annonce, type Categorie, type Statut, type TypeAnnonce } from '../domaine/annonce';
-import { DepotAnnonces } from '../domaine/ports';
+import { DepotAnnonces, type PageAnnonces } from '../domaine/ports';
 import { AnnonceEntite } from './annonce.entite';
 
 /** Adaptateur PostgreSQL du dépôt d'annonces. Les requêtes de l'ORM sont paramétrées (risque R2). */
@@ -14,6 +14,22 @@ export class DepotAnnoncesTypeOrm extends DepotAnnonces {
 
   async enregistrer(annonce: Annonce): Promise<void> {
     await this.table.save(versEntite(annonce));
+  }
+
+  async trouver(id: string): Promise<Annonce | undefined> {
+    const entite = await this.table.findOneBy({ id });
+    return entite ? versDomaine(entite) : undefined;
+  }
+
+  async listerPubliees(page: number, taille: number): Promise<PageAnnonces> {
+    const [entites, total] = await this.table.findAndCount({
+      where: { statut: 'publiee' },
+      // L'identifiant départage deux annonces publiées au même instant : l'ordre des pages est stable.
+      order: { publieeLe: 'DESC', id: 'ASC' },
+      skip: (page - 1) * taille,
+      take: taille,
+    });
+    return { annonces: entites.map(versDomaine), total };
   }
 }
 

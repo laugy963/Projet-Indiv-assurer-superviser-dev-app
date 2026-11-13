@@ -24,3 +24,10 @@ export function versReponse(annonce: Annonce): AnnonceReponse {
     publieeLe: annonce.publieeLe.toISOString(),
   };
 }
+
+export interface PageAnnoncesReponse {
+  annonces: AnnonceReponse[];
+  page: number;
+  taillePage: number;
+  total: number;
+}
