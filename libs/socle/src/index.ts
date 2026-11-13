@@ -1,5 +1,6 @@
 export * from './configuration/reglages';
 export * from './configuration/variables';
+export * from './demarrage';
 export * from './erreurs/filtre-erreurs';
 export * from './erreurs/requete-invalide';
 export * from './sante/sante.controleur';

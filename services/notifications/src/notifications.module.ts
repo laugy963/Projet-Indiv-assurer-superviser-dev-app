@@ -6,7 +6,9 @@ import { DepotCentresInteretTypeOrm } from './adaptateurs/depot-centres-interet.
 import { DepotNotificationsTypeOrm } from './adaptateurs/depot-notifications.typeorm';
 import { DefinirCentresInteret, LireCentresInteret } from './application/centres-interet';
 import { ListerNotifications } from './application/lister-notifications';
+import { NotifierMembresInteresses } from './application/notifier-membres-interesses';
 import { DepotCentresInteret, DepotNotifications } from './domaine/ports';
+import { AnnoncePublieeConsommateur } from './entrees/annonce-publiee.consommateur';
 import { CentresInteretControleur } from './entrees/centres-interet.controleur';
 import { NotificationsControleur } from './entrees/notifications.controleur';
 
@@ -17,11 +19,12 @@ export class NotificationsModule {
     return {
       module: NotificationsModule,
       imports: [SocleModule.configurer(reglages.oidc), TypeOrmModule.forRoot(optionsBaseDeDonnees(reglages.bdd))],
-      controllers: [CentresInteretControleur, NotificationsControleur],
+      controllers: [CentresInteretControleur, NotificationsControleur, AnnoncePublieeConsommateur],
       providers: [
         DefinirCentresInteret,
         LireCentresInteret,
         ListerNotifications,
+        NotifierMembresInteresses,
         { provide: DepotCentresInteret, useClass: DepotCentresInteretTypeOrm },
         { provide: DepotNotifications, useClass: DepotNotificationsTypeOrm },
       ],

@@ -73,6 +73,8 @@ services:
       dockerfile: services/Dockerfile
       args:
         SERVICE: annonces
+    # Les migrations d'abord, puis le service. « exec » : Node.js reste le premier processus et reçoit SIGTERM.
+    command: ["sh", "-c", "node dist/migrer.js && exec node dist/main.js"]
     environment:
       PORT: "3000"
       BDD_HOTE: postgres
@@ -114,6 +116,8 @@ services:
       dockerfile: services/Dockerfile
       args:
         SERVICE: notifications
+    # Les migrations d'abord, puis le service. « exec » : Node.js reste le premier processus et reçoit SIGTERM.
+    command: ["sh", "-c", "node dist/migrer.js && exec node dist/main.js"]
     environment:
       PORT: "3000"
       BDD_HOTE: postgres
