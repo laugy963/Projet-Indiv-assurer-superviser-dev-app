@@ -2,6 +2,7 @@
 # Démarre l'environnement de test du prototype (fiche 0013).
 #   tests/environnement/demarrer.sh               PostgreSQL et RabbitMQ : tests d'intégration
 #   tests/environnement/demarrer.sh acceptation   + Keycloak et les deux services : tests d'acceptation
+#   IMAGE_ANNONCES=… IMAGE_NOTIFICATIONS=… tests/environnement/demarrer.sh acceptation   avec des images d'un registre
 # Le script peut être relancé : chaque opération est idempotente.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -62,6 +63,12 @@ compte_test membre-c membre "$COMPTE_MEMBRE_C_MOT_DE_PASSE"
 compte_test moderateur-test moderateur "$COMPTE_MODERATEUR_MOT_DE_PASSE"
 echo "Keycloak prêt : comptes membre-a, membre-b, membre-c et moderateur-test créés"
 
-# 5. Les deux services, construits depuis le code du dépôt.
-dc --profile acceptation up -d --build --wait annonces notifications
+# 5. Les deux services. Sur le poste, ils sont construits depuis le code du dépôt.
+#    Dans le pipeline, IMAGE_ANNONCES et IMAGE_NOTIFICATIONS désignent les images du registre :
+#    elles sont tirées telles quelles (« construire une fois »), jamais reconstruites.
+if [ -n "${IMAGE_ANNONCES:-}" ] && [ -n "${IMAGE_NOTIFICATIONS:-}" ]; then
+  dc --profile acceptation up -d --no-build --wait annonces notifications
+else
+  dc --profile acceptation up -d --build --wait annonces notifications
+fi
 echo "Environnement d'acceptation prêt"

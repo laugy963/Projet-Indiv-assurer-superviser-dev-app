@@ -67,7 +67,9 @@ services:
 
   annonces:
     profiles: ["acceptation"]
-    image: epouvante/annonces:local
+    # Sur le poste : image construite depuis le code du dépôt. Dans le pipeline : IMAGE_ANNONCES désigne,
+    # par son empreinte, l'image déjà construite et scannée ; c'est elle qui est testée, sans reconstruction.
+    image: ${IMAGE_ANNONCES:-epouvante/annonces:local}
     build:
       context: ../..
       dockerfile: services/Dockerfile
@@ -110,7 +112,9 @@ services:
 
   notifications:
     profiles: ["acceptation"]
-    image: epouvante/notifications:local
+    # Sur le poste : image construite depuis le code du dépôt. Dans le pipeline : IMAGE_NOTIFICATIONS désigne,
+    # par son empreinte, l'image déjà construite et scannée ; c'est elle qui est testée, sans reconstruction.
+    image: ${IMAGE_NOTIFICATIONS:-epouvante/notifications:local}
     build:
       context: ../..
       dockerfile: services/Dockerfile
