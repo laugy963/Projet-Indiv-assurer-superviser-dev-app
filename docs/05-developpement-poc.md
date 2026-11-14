@@ -1,7 +1,7 @@
 # Étape 5 — Développement du prototype
 
 - Date : 13 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 14 novembre 2026
 - Code : [services/annonces/](../services/annonces/README.md), [services/notifications/](../services/notifications/README.md), [libs/socle/](../libs/socle/README.md)
 - Tests et preuves : [tests/](../tests/README.md), sorties brutes dans [tests/resultats/](../tests/resultats/)
 - Décisions prises à cette étape : fiches [0012](adr/0012-socle-commun.md), [0013](adr/0013-environnement-et-jetons-des-tests.md), [0014](adr/0014-audience-du-jeton.md)

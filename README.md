@@ -18,8 +18,8 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 2 | Processus de développement | Terminée |
 | 3 | Exigences et architecture | Terminée |
 | 4 | Bac à sable | Terminée |
-| 5 | Développement du prototype | En attente de validation |
-| 6 | Pipeline CI/CD | À faire |
+| 5 | Développement du prototype | Terminée |
+| 6 | Pipeline CI/CD | En cours |
 | 7 | Déploiement, observabilité, charge | À faire |
 | 8 | Audit et remédiation | À faire |
 | 9 | Soutenance | À faire |
