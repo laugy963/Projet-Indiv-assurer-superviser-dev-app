@@ -1,0 +1,44 @@
+{
+  "name": "epouvante",
+  "version": "0.1.0",
+  "description": "Prototype de la plateforme de La Petite Maison de l'Épouvante : services annonces et notifications",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=26.13.0 <27"
+  },
+  "workspaces": [
+    "libs/socle",
+    "services/annonces",
+    "services/notifications",
+    "tests/acceptation"
+  ],
+  "scripts": {
+    "build": "npm run build -w @epouvante/socle && npm run build -w @epouvante/annonces -w @epouvante/notifications",
+    "lint": "eslint . --max-warnings 0",
+    "typage": "npm run typage --workspaces --if-present",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:int": "npm run test:int --workspaces --if-present",
+    "test:acceptation": "npm run test -w @epouvante/tests-acceptation",
+    "env:integration": "tests/environnement/demarrer.sh",
+    "env:acceptation": "tests/environnement/demarrer.sh acceptation",
+    "env:arret": "tests/environnement/arreter.sh",
+    "preuves": "tests/rejouer.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@nestjs/testing": "12.5.0",
+    "@types/express": "5.0.6",
+    "@types/jest": "30.0.0",
+    "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
+    "@types/supertest": "7.2.1",
+    "eslint": "10.14.0",
+    "eslint-plugin-security": "4.2.1",
+    "jest": "30.5.2",
+    "supertest": "7.3.2",
+    "ts-jest": "29.4.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
+  }
+}

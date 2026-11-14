@@ -1,0 +1,26 @@
+Indicateur I1 — exécution du 2026-11-13 16:57:52
+Calculé par tests/indicateur-i1.mjs à partir des rapports JSON des tests d'intégration et d'acceptation
+
+| Critère | Tests réussis | Tests en échec | Niveau |
+|---|---|---|---|
+| CA-01 | 40 | 0 | acceptation, intégration |
+| CA-02 | 7 | 0 | acceptation, intégration |
+| CA-03 | 8 | 0 | intégration |
+| CA-04 | 1 | 0 | intégration |
+| CA-05 | 12 | 0 | intégration |
+| CA-06 | 2 | 0 | intégration |
+| CA-07 | 6 | 0 | intégration |
+| CA-08 | 5 | 0 | intégration |
+| CA-09 | 2 | 0 | intégration |
+| CA-10 | 5 | 0 | intégration |
+| CA-11 | 1 | 0 | acceptation |
+| CA-12 | 1 | 0 | acceptation |
+| CA-13 | 2 | 0 | acceptation |
+| CA-14 | 1 | 0 | intégration |
+| CA-15 | 1 | 0 | acceptation |
+| CA-16 | 3 | 0 | intégration |
+| CA-17 | 3 | 0 | acceptation, intégration |
+| CA-18 | 2 | 0 | acceptation, intégration |
+| CA-19 | 1 | 0 | intégration |
+
+I1 = 19 critères prouvés sur 19, soit 100 %

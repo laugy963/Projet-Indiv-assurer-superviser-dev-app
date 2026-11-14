@@ -1,0 +1,133 @@
+Couverture de code — exécution du 2026-11-13 16:56:49
+Node.js v26.13.1, NestJS 12.5.0, TypeScript 6.0.3, Jest 30.5.2 — PostgreSQL 18.7, RabbitMQ 4.4.0 réels, jetons de l'émetteur de test
+
+=== libs/socle (tests unitaires)
+PASS src/socle.module.spec.ts
+PASS src/securite/verificateur-jeton-oidc.spec.ts
+PASS src/validation/tuyau-validation.spec.ts
+PASS src/securite/garde-acces.spec.ts
+PASS src/erreurs/filtre-erreurs.spec.ts
+PASS src/configuration/reglages.spec.ts
+PASS src/configuration/variables.spec.ts
+-----------------------------|---------|----------|---------|---------|-------------------
+File                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------------------|---------|----------|---------|---------|-------------------
+All files                    |   97.84 |    81.53 |     100 |   98.26 |                   
+ src                         |     100 |      100 |     100 |     100 |                   
+  socle.module.ts            |     100 |      100 |     100 |     100 |                   
+ src/configuration           |     100 |    66.66 |     100 |     100 |                   
+  reglages.ts                |     100 |        0 |     100 |     100 | 13                
+  variables.ts               |     100 |       80 |     100 |     100 | 6                 
+ src/erreurs                 |     100 |    91.66 |     100 |     100 |                   
+  filtre-erreurs.ts          |     100 |    91.66 |     100 |     100 | 46                
+  requete-invalide.ts        |     100 |      100 |     100 |     100 |                   
+ src/sante                   |     100 |      100 |     100 |     100 |                   
+  sante.controleur.ts        |     100 |      100 |     100 |     100 |                   
+ src/securite                |      96 |    82.92 |     100 |   96.61 |                   
+  decorateurs.ts             |     100 |      100 |     100 |     100 |                   
+  garde-acces.ts             |     100 |    92.59 |     100 |     100 | 31                
+  verificateur-jeton-oidc.ts |   86.95 |    64.28 |     100 |      90 | 61-63             
+  verificateur-jeton.ts      |     100 |      100 |     100 |     100 |                   
+ src/validation              |     100 |    66.66 |     100 |     100 |                   
+  tuyau-validation.ts        |     100 |    66.66 |     100 |     100 | 20,23             
+-----------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 7 passed, 7 total
+Tests:       70 passed, 70 total
+Snapshots:   0 total
+Time:        2.787 s
+Ran all test suites.
+
+=== services/annonces (tests unitaires et d'intégration)
+PASS integration test/integration/controle-acces.int-spec.ts
+PASS integration test/integration/us-01-publier-une-annonce.int-spec.ts
+PASS integration test/integration/sante.int-spec.ts
+PASS integration test/integration/us-05-consulter-les-annonces.int-spec.ts
+PASS integration test/integration/us-06-retirer-une-annonce.int-spec.ts
+PASS unitaire src/application/publier-annonce.spec.ts
+PASS unitaire src/application/lister-annonces.spec.ts
+PASS unitaire src/application/retirer-annonce.spec.ts
+PASS unitaire src/domaine/annonce.spec.ts
+----------------------------------|---------|----------|---------|---------|-------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------------------------------|---------|----------|---------|---------|-------------------
+All files                         |   98.13 |    81.81 |   94.28 |   97.88 |                   
+ src                              |     100 |      100 |     100 |     100 |                   
+  annonces.module.ts              |     100 |      100 |     100 |     100 |                   
+ src/adaptateurs                  |     100 |    86.36 |     100 |     100 |                   
+  annonce.entite.ts               |     100 |       75 |     100 |     100 | 28                
+  base-de-donnees.ts              |     100 |      100 |     100 |     100 |                   
+  depot-annonces.typeorm.ts       |     100 |    92.85 |     100 |     100 | 11                
+  emetteur-evenements.rabbitmq.ts |     100 |       75 |     100 |     100 | 19                
+ src/application                  |     100 |    77.27 |     100 |     100 |                   
+  lister-annonces.ts              |     100 |       75 |     100 |     100 | 18                
+  publier-annonce.ts              |     100 |       70 |     100 |     100 | 13-28             
+  retirer-annonce.ts              |     100 |     87.5 |     100 |     100 | 14                
+ src/domaine                      |     100 |      100 |     100 |     100 |                   
+  annonce.ts                      |     100 |      100 |     100 |     100 |                   
+  evenements.ts                   |     100 |      100 |     100 |     100 |                   
+  ports.ts                        |     100 |      100 |     100 |     100 |                   
+ src/entrees                      |   97.82 |    76.19 |     100 |   97.61 |                   
+  annonce.reponse.ts              |     100 |      100 |     100 |     100 |                   
+  annonces.controleur.ts          |   96.15 |       75 |     100 |   95.65 | 41                
+  identifiant-annonce.dto.ts      |     100 |      100 |     100 |     100 |                   
+  lister-annonces.dto.ts          |     100 |      100 |     100 |     100 |                   
+  publier-annonce.dto.ts          |     100 |      100 |     100 |     100 |                   
+ src/migrations                   |      40 |      100 |       0 |      40 |                   
+  1763000000000-creer-annonces.ts |      40 |      100 |       0 |      40 | 8-28              
+----------------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 9 passed, 9 total
+Tests:       78 passed, 78 total
+Snapshots:   0 total
+Time:        8.867 s, estimated 10 s
+Ran all test suites in 2 projects.
+
+=== services/notifications (tests unitaires et d'intégration)
+PASS integration test/integration/controle-acces.int-spec.ts
+PASS integration test/integration/us-02-declarer-mes-centres-d-interet.int-spec.ts
+PASS integration test/integration/us-04-etre-notifie.int-spec.ts
+PASS integration test/integration/us-03-consulter-mes-notifications.int-spec.ts
+PASS integration test/integration/sante.int-spec.ts
+PASS unitaire src/entrees/annonce-publiee.consommateur.spec.ts
+PASS unitaire src/application/lister-notifications.spec.ts
+PASS unitaire src/application/notifier-membres-interesses.spec.ts
+PASS unitaire src/application/centres-interet.spec.ts
+PASS unitaire src/domaine/evenement-annonce-publiee.spec.ts
+PASS unitaire src/domaine/correspondance.spec.ts
+PASS unitaire src/domaine/centres-interet.spec.ts
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |   96.61 |    80.18 |   95.74 |    96.9 |                   
+ src                                   |     100 |      100 |     100 |     100 |                   
+  consommation.ts                      |     100 |      100 |     100 |     100 |                   
+  notifications.module.ts              |     100 |      100 |     100 |     100 |                   
+ src/adaptateurs                       |   98.18 |       75 |     100 |     100 |                   
+  base-de-donnees.ts                   |     100 |      100 |     100 |     100 |                   
+  depot-centres-interet.typeorm.ts     |     100 |    83.33 |     100 |     100 | 10                
+  depot-notifications.typeorm.ts       |   93.33 |    66.66 |     100 |     100 | 11-16             
+  entites.ts                           |     100 |       75 |     100 |     100 | 35                
+ src/application                       |     100 |       75 |     100 |     100 |                   
+  centres-interet.ts                   |     100 |       75 |     100 |     100 | 8-20              
+  lister-notifications.ts              |     100 |       75 |     100 |     100 | 11                
+  notifier-membres-interesses.ts       |     100 |       75 |     100 |     100 | 11                
+ src/domaine                           |   98.21 |    96.77 |     100 |     100 |                   
+  centres-interet.ts                   |     100 |      100 |     100 |     100 |                   
+  correspondance.ts                    |     100 |      100 |     100 |     100 |                   
+  evenement-annonce-publiee.ts         |   97.22 |    96.55 |     100 |     100 | 43                
+  ports.ts                             |     100 |      100 |     100 |     100 |                   
+ src/entrees                           |     100 |    72.72 |     100 |     100 |                   
+  annonce-publiee.consommateur.ts      |     100 |    68.75 |     100 |     100 | 20-49             
+  centres-interet.controleur.ts        |     100 |       75 |     100 |     100 | 14-26             
+  centres-interet.dto.ts               |     100 |      100 |     100 |     100 |                   
+  notifications.controleur.ts          |     100 |       75 |     100 |     100 | 21-25             
+ src/migrations                        |      25 |      100 |       0 |      25 |                   
+  1763000000000-creer-notifications.ts |      25 |      100 |       0 |      25 | 8-38              
+---------------------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 12 passed, 12 total
+Tests:       83 passed, 83 total
+Snapshots:   0 total
+Time:        5.275 s, estimated 6 s
+Ran all test suites in 2 projects.

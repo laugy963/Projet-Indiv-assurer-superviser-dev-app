@@ -15,3 +15,8 @@ Une fiche par décision structurante : le contexte, la décision, les alternativ
 | [0009](0009-authentification-et-autorisation.md) | Authentification et autorisation : Keycloak, OpenID Connect, jeton vérifié dans chaque service | Acceptée |
 | [0010](0010-exposition-et-https.md) | Exposition : API REST en HTTPS, Ingress Traefik, cert-manager | Acceptée |
 | [0011](0011-observabilite.md) | Observabilité : métriques avec Prometheus et Grafana | Acceptée |
+| [0012](0012-socle-commun.md) | Socle technique commun aux deux services : paquet interne, npm workspaces | Acceptée |
+| [0013](0013-environnement-et-jetons-des-tests.md) | Tests : environnement Docker Compose, émetteur de jetons de test pour l'intégration | Acceptée |
+| [0014](0014-audience-du-jeton.md) | Vérification du destinataire du jeton (`aud`) | Acceptée |
+| [0015](0015-images-multi-architectures.md) | Images pour arm64 et amd64 : émulation QEMU dans un seul job | Acceptée |
+| [0016](0016-outils-du-pipeline-figes.md) | Outils du pipeline figés par leur empreinte ; jeton à droits minimaux | Acceptée |

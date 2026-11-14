@@ -1,0 +1,51 @@
+# Scan planifié : les contrôles « dependances » et « scan-image » du pipeline, rejoués chaque nuit sur main.
+# Référence : docs/02-processus-developpement.md, paragraphe 4.2.
+# Pourquoi : une vulnérabilité publiée aujourd'hui touche le code d'hier. Si personne ne pousse de code,
+# le pipeline ne tourne pas, et rien ne le signale. Ce workflow ne bloque aucune fusion : il alerte.
+# Un échec est notifié par courriel à la personne qui a modifié ce fichier en dernier.
+name: scan-planifie
+
+on:
+  schedule:
+    - cron: "23 3 * * *" # chaque nuit à 3 h 23 UTC ; pas à l'heure pile, où les exécuteurs de GitHub sont les plus demandés
+  workflow_dispatch: # lancement manuel, pour vérifier le workflow sans attendre la nuit
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  scan-planifie:
+    name: scan-planifie
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      # Un workflow planifié s'exécute sur le dernier commit de la branche par défaut : main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Trivy, mode fichiers - vulnérabilités connues des dépendances
+        run: tests/securite/analyses.sh dependances
+      # Les images sont reconstruites, pour une seule architecture et sans être publiées :
+      # l'image de base peut avoir reçu des correctifs depuis la dernière livraison.
+      - name: Reconstruire les deux images
+        if: ${{ !cancelled() }}
+        run: |
+          for service in annonces notifications; do
+            docker buildx build --load --pull -f services/Dockerfile --build-arg SERVICE="$service" -t "epouvante/$service:nuit" .
+          done
+      - name: Trivy, mode image - tout le contenu des deux images
+        if: ${{ !cancelled() }}
+        run: |
+          echecs=0
+          for service in annonces notifications; do
+            tests/securite/analyses.sh image "epouvante/$service:nuit" || echecs=$((echecs + 1))
+          done
+          exit "$echecs"
+      - name: Conserver les rapports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rapports-scan-planifie
+          path: reports/securite/

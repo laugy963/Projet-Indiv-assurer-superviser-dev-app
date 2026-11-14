@@ -1,0 +1,14 @@
+{
+  "name": "@epouvante/tests-acceptation",
+  "version": "0.1.0",
+  "description": "Tests d'acceptation du backlog, joués à travers les deux services",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "typage": "tsc -p tsconfig.json",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --runInBand"
+  },
+  "devDependencies": {
+    "jose": "6.2.17"
+  }
+}

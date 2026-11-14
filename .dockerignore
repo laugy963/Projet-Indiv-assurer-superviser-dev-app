@@ -1,0 +1,19 @@
+# Le contexte de construction est la racine du dépôt : n'y laisser entrer que le code utile.
+# Aucun secret ne doit pouvoir être copié dans une image.
+**/.env
+**/.env.*
+**/node_modules
+**/dist
+**/coverage
+.git
+.github
+.claude
+docs
+sandbox
+deploy
+Cours
+Contexte et Consigne - Indiv
+tests/charge
+tests/environnement
+*.md
+*.rtf

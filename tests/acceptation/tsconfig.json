@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../..",
+    "noEmit": true,
+    "paths": {
+      "@epouvante/socle/outils-de-test": ["../../libs/socle/outils-de-test/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

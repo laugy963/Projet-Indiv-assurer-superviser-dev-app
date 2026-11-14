@@ -1,0 +1,149 @@
+# Environnement de test du prototype (fiche 0013).
+# Sans profil  : PostgreSQL et RabbitMQ, pour les tests d'intégration de chaque service.
+# Profil « acceptation » : ajoute Keycloak et les deux services, pour les tests d'acceptation.
+# Tout est éphémère : aucun volume nommé, « arreter.sh » détruit les données.
+# Les mots de passe viennent du fichier .env, créé au hasard par demarrer.sh et jamais versionné.
+name: epouvante-tests
+
+services:
+  postgres:
+    image: postgres:18.7-alpine
+    environment:
+      POSTGRES_PASSWORD: ${PG_ADMIN_MOT_DE_PASSE:?lancer demarrer.sh}
+      BDD_ANNONCES_MOT_DE_PASSE: ${BDD_ANNONCES_MOT_DE_PASSE:?}
+      BDD_NOTIFICATIONS_MOT_DE_PASSE: ${BDD_NOTIFICATIONS_MOT_DE_PASSE:?}
+    ports:
+      - "127.0.0.1:5432:5432"       # adresse locale seulement
+    volumes:
+      # Crée une base et un compte par service au premier démarrage (fiche 0008).
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notifications"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4.4.0-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: admin-tests
+      RABBITMQ_DEFAULT_PASS: ${AMQP_ADMIN_MOT_DE_PASSE:?}
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"     # console web
+    volumes:
+      # Topologie versionnée, sans aucun compte : importée par demarrer.sh.
+      - ./rabbitmq/topologie.json:/etc/rabbitmq/topologie.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 3s
+      timeout: 10s
+      retries: 30
+
+  keycloak:
+    profiles: ["acceptation"]
+    image: quay.io/keycloak/keycloak:26.8.2
+    # « start-dev » : mode de développement, base embarquée. Suffit à un environnement jetable ;
+    # le mode production derrière HTTPS a été éprouvé au bac à sable et revient à l'étape 7.
+    command: ["start-dev", "--import-realm"]
+    environment:
+      # Adresse publique : c'est elle qui est écrite comme émetteur dans les jetons.
+      KC_HOSTNAME: http://localhost:8081
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin-tests
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_MOT_DE_PASSE:?}
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ../../deploy/keycloak/epouvante-realm.json:/opt/keycloak/data/import/epouvante-realm.json:ro
+    mem_limit: 1g
+    healthcheck:
+      # L'image n'a ni curl ni wget : la sonde de santé est lue par une connexion TCP de bash.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  annonces:
+    profiles: ["acceptation"]
+    # Sur le poste : image construite depuis le code du dépôt. Dans le pipeline : IMAGE_ANNONCES désigne,
+    # par son empreinte, l'image déjà construite et scannée ; c'est elle qui est testée, sans reconstruction.
+    image: ${IMAGE_ANNONCES:-epouvante/annonces:local}
+    build:
+      context: ../..
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: annonces
+    # Les migrations d'abord, puis le service. « exec » : Node.js reste le premier processus et reçoit SIGTERM.
+    command: ["sh", "-c", "node dist/migrer.js && exec node dist/main.js"]
+    environment:
+      PORT: "3000"
+      BDD_HOTE: postgres
+      BDD_PORT: "5432"
+      BDD_NOM: annonces
+      BDD_UTILISATEUR: annonces
+      BDD_MOT_DE_PASSE: ${BDD_ANNONCES_MOT_DE_PASSE:?}
+      AMQP_HOTE: rabbitmq
+      AMQP_PORT: "5672"
+      AMQP_UTILISATEUR: annonces
+      AMQP_MOT_DE_PASSE: ${AMQP_ANNONCES_MOT_DE_PASSE:?}
+      # Deux réglages distincts (règle du bac à sable) : l'émetteur écrit dans les jetons,
+      # et l'adresse interne où lire les clés publiques.
+      OIDC_EMETTEUR: http://localhost:8081/realms/epouvante
+      OIDC_URL_CLES: http://keycloak:8080/realms/epouvante/protocol/openid-connect/certs
+      OIDC_AUDIENCE: api-epouvante
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    # Moindre privilège : utilisateur non root, système de fichiers en lecture seule, aucune capacité.
+    user: "1000:1000"
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    healthcheck: &sante
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/sante').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  notifications:
+    profiles: ["acceptation"]
+    # Sur le poste : image construite depuis le code du dépôt. Dans le pipeline : IMAGE_NOTIFICATIONS désigne,
+    # par son empreinte, l'image déjà construite et scannée ; c'est elle qui est testée, sans reconstruction.
+    image: ${IMAGE_NOTIFICATIONS:-epouvante/notifications:local}
+    build:
+      context: ../..
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: notifications
+    # Les migrations d'abord, puis le service. « exec » : Node.js reste le premier processus et reçoit SIGTERM.
+    command: ["sh", "-c", "node dist/migrer.js && exec node dist/main.js"]
+    environment:
+      PORT: "3000"
+      BDD_HOTE: postgres
+      BDD_PORT: "5432"
+      BDD_NOM: notifications
+      BDD_UTILISATEUR: notifications
+      BDD_MOT_DE_PASSE: ${BDD_NOTIFICATIONS_MOT_DE_PASSE:?}
+      AMQP_HOTE: rabbitmq
+      AMQP_PORT: "5672"
+      AMQP_UTILISATEUR: notifications
+      AMQP_MOT_DE_PASSE: ${AMQP_NOTIFICATIONS_MOT_DE_PASSE:?}
+      OIDC_EMETTEUR: http://localhost:8081/realms/epouvante
+      OIDC_URL_CLES: http://keycloak:8080/realms/epouvante/protocol/openid-connect/certs
+      OIDC_AUDIENCE: api-epouvante
+    ports:
+      - "127.0.0.1:3002:3000"
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    user: "1000:1000"
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    healthcheck: *sante
