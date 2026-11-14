@@ -35,7 +35,10 @@ services:
       # Topologie versionnée, sans aucun compte : importée par demarrer.sh.
       - ./rabbitmq/topologie.json:/etc/rabbitmq/topologie.json:ro
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      # La sonde est lancée sous le compte « rabbitmq », pas en root. Lancée en root avant que le serveur ait créé
+      # son fichier .erlang.cookie, elle le créait elle-même, lisible par root seul : le serveur s'arrêtait
+      # (« eacces »). Constaté deux fois le 14 novembre 2026, quand le poste était lent.
+      test: ["CMD", "su-exec", "rabbitmq", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
       interval: 3s
       timeout: 10s
       retries: 30
