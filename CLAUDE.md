@@ -50,7 +50,7 @@ Les fiches ADR font foi ; ceci n'est qu'un résumé.
 - Fonctionnalité : un membre publie une annonce de troc ou de don ; les membres aux centres d'intérêt correspondants sont notifiés (ADR 0001).
 - Back-end : Node.js LTS, TypeScript, NestJS (ADR 0002).
 - Hébergement : k3d en local, k3s sur une VM en Europe ; repli Kubernetes managé européen (ADR 0003).
-- CI/CD : GitHub Actions, dépôt public, SonarQube Cloud (ADR 0004) ; GitHub flow, `main` protégée à partir de l'étape 6 (ADR 0006).
+- CI/CD : GitHub Actions, dépôt public, SonarQube Cloud (ADR 0004) ; GitHub flow (ADR 0006). `main` est protégée depuis le 14 novembre 2026 : aucun push direct, même pour la documentation ; tout passe par une branche, une pull request et les 10 jobs du pipeline (6 à 12 minutes), puis une fusion par commit de fusion.
 - Tests : Jest + Supertest (unitaires, intégration, acceptation), k6 pour la charge (ADR 0005). Contrôles de sécurité du pipeline : Semgrep, Gitleaks, Trivy.
 - Communication entre services : RabbitMQ, exchange topic `annonces`, événement `annonce.publiee` ; aucun appel direct entre les deux services (ADR 0007).
 - Données : PostgreSQL, une instance, une base et un compte par service, TypeORM, migrations versionnées (ADR 0008).
