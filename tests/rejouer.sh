@@ -13,9 +13,10 @@ RAPPORTS="$PWD/reports"   # rapports JSON de Jest, non versionnés : ils servent
 mkdir -p "$RESULTATS" "$RAPPORTS"
 ECHECS=0
 
+# « npx --no-install » : lancer le Jest installé par « npm ci », sans jamais en télécharger un autre.
 # --reporters=default avec --verbose : un verdict par test.
 # Sans cette option, Jest réduit sa sortie à un résumé quand il est lancé par un agent de code.
-lancer_jest() { npx jest --verbose --reporters=default "$@"; }
+lancer_jest() { npx --no-install jest --verbose --reporters=default "$@"; }
 
 unitaires() {
   local code=0
@@ -37,10 +38,10 @@ integration() {
 
 couverture() {
   local code=0
-  (cd libs/socle && echo "=== libs/socle (tests unitaires)" && npx jest --reporters=default --coverage) || code=1
+  (cd libs/socle && echo "=== libs/socle (tests unitaires)" && npx --no-install jest --reporters=default --coverage) || code=1
   for service in annonces notifications; do
     (cd "services/$service" && echo && echo "=== services/$service (tests unitaires et d'intégration)" &&
-      npx jest --reporters=default --runInBand --coverage) || code=1
+      npx --no-install jest --reporters=default --runInBand --coverage) || code=1
   done
   return $code
 }

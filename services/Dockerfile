@@ -15,7 +15,8 @@ COPY services/annonces/package.json services/annonces/
 COPY services/notifications/package.json services/notifications/
 COPY tests/acceptation/package.json tests/acceptation/
 # « npm ci » installe exactement les versions du verrou.
-RUN npm ci --no-audit --no-fund
+# « --ignore-scripts » : un paquet ne peut pas exécuter de script à son installation.
+RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY tsconfig.base.json ./
 COPY libs/socle libs/socle
 COPY services/${SERVICE} services/${SERVICE}
@@ -30,7 +31,7 @@ COPY libs/socle/package.json libs/socle/
 COPY services/annonces/package.json services/annonces/
 COPY services/notifications/package.json services/notifications/
 COPY tests/acceptation/package.json tests/acceptation/
-RUN npm ci --omit=dev --no-audit --no-fund -w @epouvante/socle -w @epouvante/${SERVICE} && npm cache clean --force
+RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund -w @epouvante/socle -w @epouvante/${SERVICE} && npm cache clean --force
 
 # --- Étape 3 : image livrée. Ni sources, ni compilateur, ni tests, ni secret ---
 FROM node:${NODE_VERSION}-alpine
