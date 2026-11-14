@@ -1,0 +1,362 @@
+# Pipeline CI/CD du prototype.
+# Référence : docs/02-processus-developpement.md, paragraphe 4 ; schéma : docs/schemas/pipeline-ci-cd.md.
+#   Temps 1 : contrôles du code source, lancés en parallèle.
+#   Temps 2 : image de conteneur, construite une fois, puis scannée.
+#   Temps 3 : tests d'acceptation sur cette image, dans un environnement éphémère.
+#   Temps 4 : déploiement et vérification. Il arrive à l'étape 7, avec le cluster de démonstration.
+# Chaque action est désignée par l'empreinte de son commit, la version est en commentaire (fiche 0016).
+name: pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Moindre privilège : le jeton du pipeline ne peut que lire le dépôt.
+# Un job qui a besoin d'un droit de plus le demande pour lui seul.
+permissions:
+  contents: read
+
+# Un nouveau commit sur une pull request annule l'exécution en cours : seul le dernier état compte.
+# Sur main, rien n'est annulé : chaque fusion est contrôlée jusqu'au bout.
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    # « shell: bash » active « pipefail » : dans « a | b », l'échec de « a » fait échouer l'étape.
+    shell: bash
+
+env:
+  NODE_VERSION: "26.13.1" # version figée du prototype (fiche 0002), la même que dans services/Dockerfile
+  # Commit contrôlé. Sur une pull request, « github.sha » désigne un commit de fusion provisoire :
+  # on prend le dernier commit de la branche, celui que le développeur a poussé.
+  SHA_DU_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  # ------------------------------------------------------------------ Temps 1 : contrôles du code source
+
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Installer les versions exactes du fichier de verrou
+        run: npm ci
+      - name: ESLint, avec son extension de sécurité
+        run: npm run lint
+      - name: Vérification des types par le compilateur TypeScript
+        run: npm run typage
+
+  tests-unitaires:
+    name: tests-unitaires
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # Le seuil de couverture du socle (80 %) est dans sa configuration Jest : en dessous, le job échoue.
+      # « mkdir » : Jest n'écrit pas son rapport si le dossier n'existe pas.
+      - name: Tests unitaires et couverture, paquet par paquet
+        run: |
+          mkdir -p reports
+          for paquet in socle annonces notifications; do
+            npm run test:unit -w "@epouvante/$paquet" -- --verbose --coverage --json --outputFile="$PWD/reports/tests-unitaires-$paquet.json"
+          done
+      - name: Conserver les rapports de tests et de couverture
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tests-unitaires
+          path: |
+            reports/
+            libs/socle/coverage/lcov.info
+            services/*/coverage/lcov.info
+
+  tests-integration:
+    name: tests-integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # Le même script que sur le poste (fiche 0013) : mots de passe tirés au hasard, une base et un compte par service.
+      - name: Environnement éphémère - PostgreSQL et RabbitMQ en conteneurs
+        run: npm run env:integration
+      # Chaque service est lancé avec ses vraies dépendances et appelé en HTTP. Le rapport JSON sert au calcul de I1.
+      - name: Tests d'intégration et couverture, service par service
+        run: |
+          mkdir -p reports
+          for service in annonces notifications; do
+            npm run test:int -w "@epouvante/$service" -- --verbose --coverage --json --outputFile="$PWD/reports/tests-integration-$service.json"
+          done
+      - name: Journaux de la base et du broker, en cas d'échec
+        if: ${{ failure() }}
+        run: docker compose -f tests/environnement/compose.yaml --env-file tests/environnement/.env logs --no-color --tail 200
+      - name: Conserver les rapports de tests et de couverture
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tests-integration
+          path: |
+            reports/
+            services/*/coverage/lcov.info
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # tout l'historique : un secret retiré dans un commit suivant reste lisible dans l'ancien
+      - name: Gitleaks - secret commité, dans tout l'historique
+        run: tests/securite/analyses.sh secrets
+      - name: Conserver le rapport
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rapport-secrets
+          path: reports/securite/
+
+  sast:
+    name: sast
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # Cliquet (processus, paragraphe 3.1) : un nouveau contrôle entre en mode « informer ».
+    # Un constat est signalé, mais n'arrête pas la chaîne. Le contrôle devient bloquant une fois ses constats traités.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Semgrep - motifs de code dangereux
+        run: tests/securite/analyses.sh sast
+      - name: Conserver le rapport
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rapport-sast
+          path: reports/securite/
+
+  dependances:
+    name: dependances
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Trivy, mode fichiers - vulnérabilités connues des dépendances
+        run: tests/securite/analyses.sh dependances
+      - name: Conserver le rapport
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rapport-dependances
+          path: reports/securite/
+
+  qualite:
+    name: qualite
+    # La couverture vient des deux niveaux de tests : SonarQube Cloud additionne leurs rapports.
+    needs: [tests-unitaires, tests-integration]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # tout l'historique : SonarQube Cloud s'en sert pour dater chaque ligne et isoler le nouveau code
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      # Les dépendances installées donnent à l'analyse les types des bibliothèques : ses règles TypeScript sont plus justes.
+      - run: npm ci
+      - name: Récupérer la couverture des tests unitaires
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: tests-unitaires
+          path: reports/unitaire
+      - name: Récupérer la couverture des tests d'intégration
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: tests-integration
+          path: reports/integration
+      # Réglages dans sonar-project.properties. « sonar.qualitygate.wait » : l'étape attend le verdict
+      # du quality gate et échoue s'il n'est pas tenu.
+      - name: Analyse SonarQube Cloud et quality gate
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ------------------------------------------------------------------ Temps 2 : image de conteneur
+
+  build-image:
+    name: build-image
+    # L'image n'est construite que si tous les contrôles du code source ont réussi.
+    needs: [lint, tests-unitaires, tests-integration, secrets, sast, dependances, qualite]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write # pousser l'image dans ghcr.io ; ce droit n'existe que pour ce job, et le jeton meurt avec lui
+    outputs:
+      # Nom complet de chaque image, avec son empreinte : les jobs suivants ne peuvent pas en utiliser une autre.
+      annonces: ${{ steps.noms.outputs.annonces }}@${{ steps.annonces.outputs.digest }}
+      notifications: ${{ steps.noms.outputs.notifications }}@${{ steps.notifications.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # QEMU émule un processeur arm64 sur l'exécuteur amd64 : c'est ainsi que la variante arm64 est construite (fiche 0015).
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Nom des images
+        id: noms
+        run: |
+          # Un nom d'image s'écrit en minuscules ; le nom d'un compte GitHub peut contenir des majuscules.
+          prefixe="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/epouvante"
+          echo "annonces=$prefixe-annonces" >> "$GITHUB_OUTPUT"
+          echo "notifications=$prefixe-notifications" >> "$GITHUB_OUTPUT"
+      # Une image par service, pour deux architectures, étiquetée par le SHA du commit, jamais « latest ».
+      # « cache » : les couches inchangées sont reprises de l'exécution précédente.
+      # « provenance: false » : l'attestation d'origine va avec la signature de l'image, hors prototype (processus, 4.7).
+      - name: Image du service annonces
+        id: annonces
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: services/Dockerfile
+          build-args: SERVICE=annonces
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.noms.outputs.annonces }}:${{ env.SHA_DU_COMMIT }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SHA_DU_COMMIT }}
+          provenance: false
+          cache-from: type=gha,scope=annonces
+          cache-to: type=gha,scope=annonces,mode=max
+      - name: Image du service notifications
+        id: notifications
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: services/Dockerfile
+          build-args: SERVICE=notifications
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.noms.outputs.notifications }}:${{ env.SHA_DU_COMMIT }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SHA_DU_COMMIT }}
+          provenance: false
+          cache-from: type=gha,scope=notifications
+          cache-to: type=gha,scope=notifications,mode=max
+
+  scan-image:
+    name: scan-image
+    needs: build-image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read # lire l'image dans ghcr.io
+    env:
+      IMAGE_ANNONCES: ${{ needs.build-image.outputs.annonces }}
+      IMAGE_NOTIFICATIONS: ${{ needs.build-image.outputs.notifications }}
+      TRIVY_USERNAME: ${{ github.actor }}
+      TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Tout le contenu de l'image : système, Node.js, bibliothèques. Les quatre variantes sont lues,
+      # même si la première échoue : le rapport est complet.
+      - name: Trivy, mode image - les deux services, les deux architectures
+        run: |
+          echecs=0
+          for image in "$IMAGE_ANNONCES" "$IMAGE_NOTIFICATIONS"; do
+            for plateforme in linux/amd64 linux/arm64; do
+              tests/securite/analyses.sh image "$image" "$plateforme" || echecs=$((echecs + 1))
+            done
+          done
+          echo "Variantes en échec : $echecs sur 4"
+          exit "$echecs"
+      - name: Conserver les rapports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rapport-scan-image
+          path: reports/securite/
+
+  # ------------------------------------------------------------------ Temps 3 : tests d'acceptation
+
+  acceptation:
+    name: acceptation
+    needs: [build-image, scan-image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # Les images construites et scannées par cette exécution, désignées par leur empreinte.
+      IMAGE_ANNONCES: ${{ needs.build-image.outputs.annonces }}
+      IMAGE_NOTIFICATIONS: ${{ needs.build-image.outputs.notifications }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # PostgreSQL, RabbitMQ, Keycloak et les deux services. Les services ne sont pas reconstruits :
+      # le script tire les images désignées par IMAGE_ANNONCES et IMAGE_NOTIFICATIONS.
+      - name: Environnement éphémère - les deux services et leurs dépendances
+        run: npm run env:acceptation
+      - name: Tests d'acceptation - les scénarios du backlog, à travers les deux services
+        run: |
+          mkdir -p reports
+          npm run test -w @epouvante/tests-acceptation -- --verbose --json --outputFile="$PWD/reports/tests-acceptation.json"
+      - name: Récupérer les rapports des tests d'intégration
+        if: ${{ !cancelled() }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: tests-integration
+          path: reports/integration
+      # I1 : part des critères d'acceptation prouvés par au moins un test réussi. En dessous de 100 %, le job échoue.
+      # Le tableau est aussi écrit dans le résumé de l'exécution, lisible sans ouvrir les journaux.
+      - name: Indicateur I1 - critères d'acceptation prouvés
+        if: ${{ !cancelled() }}
+        run: |
+          node tests/indicateur-i1.mjs reports/integration/reports/tests-integration-*.json \
+            reports/tests-acceptation.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Journaux des conteneurs, en cas d'échec
+        if: ${{ failure() }}
+        run: docker compose -f tests/environnement/compose.yaml --env-file tests/environnement/.env --profile acceptation logs --no-color --tail 200
+      - name: Conserver les rapports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tests-acceptation
+          path: reports/tests-acceptation.json
