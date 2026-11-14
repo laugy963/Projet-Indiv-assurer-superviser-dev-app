@@ -1,3 +1,4 @@
+const path = require('node:path');
 const base = require('../../jest.base.cjs');
 
 // Deux niveaux de tests, visibles dans l'arborescence (fiche 0005) :
@@ -17,4 +18,8 @@ module.exports = {
   ],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts', '!src/main.ts', '!src/migrer.ts'],
   coverageDirectory: 'coverage',
+  // Rapports de couverture : le tableau dans la sortie, et un fichier lcov que le pipeline transmet à SonarQube Cloud.
+  // « projectRoot » : les chemins du fichier lcov partent de la racine du dépôt, et non du paquet.
+  // Sans cela, SonarQube Cloud ne saurait pas à quel paquet rattacher « src/… ».
+  coverageReporters: ['text', ['lcov', { projectRoot: path.join(__dirname, '../..') }]],
 };
