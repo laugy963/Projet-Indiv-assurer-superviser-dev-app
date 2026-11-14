@@ -37,6 +37,10 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund -w @epouvante/socle 
 FROM node:${NODE_VERSION}-alpine
 ARG SERVICE
 ENV NODE_ENV=production
+# npm et npx servent à installer, pas à exécuter : le service se lance par « node ». Ils sont retirés de l'image livrée.
+# Le job « scan-image » y a trouvé six vulnérabilités hautes, dans des bibliothèques que npm embarque (undici,
+# brace-expansion). Un composant absent n'a pas de vulnérabilité, et c'est un outil de moins pour un attaquant.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 COPY --from=dependances /app/node_modules node_modules
 COPY --from=construction /app/libs/socle/package.json libs/socle/package.json
