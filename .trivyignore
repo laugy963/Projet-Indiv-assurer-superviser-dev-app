@@ -1,0 +1,11 @@
+# Risques acceptés pour Trivy (jobs « dependances », « scan-image » et « scan-planifie » du pipeline).
+# Règle (processus de développement, paragraphe 3.3) : on corrige d'abord. Une vulnérabilité n'est inscrite ici
+# que s'il n'existe pas de correctif applicable, ou si elle n'est pas exploitable chez nous.
+# Chaque entrée dit qui accepte le risque, pourquoi, et jusqu'à quand. Passé la date, Trivy la signale de nouveau.
+# Ce fichier est relu dans la pull request, comme le code.
+#
+# Modèle :
+#   # Accepté par : <nom>, le <date>. Raison : <pourquoi le risque est acceptable>.
+#   CVE-AAAA-NNNNN exp:AAAA-MM-JJ
+#
+# Aucun risque accepté à ce jour.
