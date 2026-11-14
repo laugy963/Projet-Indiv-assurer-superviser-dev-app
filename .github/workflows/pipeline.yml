@@ -140,9 +140,8 @@ jobs:
     name: sast
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    # Cliquet (processus, paragraphe 3.1) : un nouveau contrôle entre en mode « informer ».
-    # Un constat est signalé, mais n'arrête pas la chaîne. Le contrôle devient bloquant une fois ses constats traités.
-    continue-on-error: true
+    # Cliquet (processus, paragraphe 3.1). Ce contrôle est entré en mode « informer » (« continue-on-error: true ») :
+    # trois exécutions sans aucun constat. Il est bloquant depuis le 14 novembre 2026, et ne revient pas en arrière.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Semgrep - motifs de code dangereux
