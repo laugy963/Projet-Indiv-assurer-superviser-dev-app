@@ -20,6 +20,7 @@ Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant d
 | `environnement/arreter.sh` | Arrête l'environnement, détruit ses données et ses mots de passe |
 | `acceptation/src/` | Scénarios du backlog. Ils ne connaissent que des adresses HTTP et des comptes : ni base, ni broker |
 | `indicateur-i1.mjs` | Calcule l'indicateur I1 à partir des rapports de Jest |
+| `securite/analyses.sh` | Contrôles de sécurité du pipeline, rejouables sur le poste : Gitleaks, Semgrep, Trivy (fiche 0016) |
 | `rejouer.sh` | Rejoue tous les tests et enregistre leur sortie brute |
 | `resultats/` | Sortie brute de la dernière exécution : c'est la preuve |
 
@@ -49,3 +50,16 @@ npm run env:acceptation && npm run test:acceptation
 | Les tests d'acceptation visent un autre environnement en changeant `URL_ANNONCES`, `URL_NOTIFICATIONS` et `URL_JETONS` | Les mêmes scénarios seront rejoués après un déploiement |
 | Le test CA-15 arrête puis relance le conteneur du service notifications | Il prouve que la publication ne dépend pas de ce service, et qu'aucun message n'est perdu |
 | L'environnement d'acceptation occupe environ 920 Mio | L'arrêter après usage |
+
+## Contrôles de sécurité
+
+Les mêmes commandes que dans le pipeline, avec les mêmes versions d'outils. Seul prérequis : Docker. Commandes exécutées avec succès le 14 novembre 2026.
+
+```bash
+tests/securite/analyses.sh secrets                          # Gitleaks : secret commité, dans tout l'historique
+tests/securite/analyses.sh sast                             # Semgrep : motifs de code dangereux
+tests/securite/analyses.sh dependances                      # Trivy : vulnérabilités des dépendances
+tests/securite/analyses.sh image epouvante/annonces:local   # Trivy : tout le contenu d'une image
+```
+
+Le code de sortie est 0 si rien n'est à signaler. Les rapports complets sont écrits dans `reports/securite/`, non versionné. Un risque accepté s'inscrit dans `.trivyignore`, à la racine, avec son auteur, sa raison et sa date d'expiration.

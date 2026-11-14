@@ -28,7 +28,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 
 ```
 .
-├── .github/workflows/     pipelines GitHub Actions (étape 6)
+├── .github/workflows/     pipeline CI/CD et scan planifié, GitHub Actions (étape 6)
 ├── services/
 │   ├── annonces/          service des annonces de troc et de don (étape 5)
 │   ├── notifications/     service des notifications (étape 5)
@@ -43,6 +43,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 │   ├── environnement/     environnement de test Docker Compose (étape 5)
 │   ├── acceptation/       tests d'acceptation du backlog (étape 5)
 │   ├── resultats/         sortie brute de la dernière exécution des tests (étape 5)
+│   ├── securite/          contrôles de sécurité du pipeline, rejouables sur le poste (étape 6)
 │   └── charge/            scénarios de test de charge (étape 7)
 ├── sandbox/               code et configuration des expérimentations (étape 4)
 └── docs/
@@ -52,6 +53,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── 03-exigences-et-backlog.md      exigences, user stories, critères d'acceptation
     ├── 03-architecture.md              composants, flux, données, sécurité, limites
     ├── 05-developpement-poc.md         prototype réalisé, critères prouvés, difficultés, limites
+    ├── 06-pipeline-ci-cd.md            pipeline réalisé, exécutions de référence, écarts, limites
     ├── retroplanning.md   calendrier jusqu'à la soutenance
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
@@ -69,9 +71,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 5. [Architecture technique](docs/03-architecture.md), avec son [schéma](docs/schemas/architecture-technique.md)
 6. [Bac à sable : synthèse des expérimentations](docs/experimentations/README.md)
 7. [Développement du prototype](docs/05-developpement-poc.md), avec les [tests et leurs preuves](tests/README.md)
-8. [Fiches de décision](docs/adr/README.md)
-9. [Rétroplanning](docs/retroplanning.md)
-10. [Journal de bord](docs/journal.md)
+8. [Pipeline CI/CD](docs/06-pipeline-ci-cd.md), avec ses fichiers dans [.github/workflows/](.github/workflows/)
+9. [Fiches de décision](docs/adr/README.md)
+10. [Rétroplanning](docs/retroplanning.md)
+11. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 
