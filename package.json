@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @epouvante/socle && npm run build -w @epouvante/annonces -w @epouvante/notifications",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "typage": "npm run typage --workspaces --if-present",
     "test:unit": "npm run test:unit --workspaces --if-present",
     "test:int": "npm run test:int --workspaces --if-present",
