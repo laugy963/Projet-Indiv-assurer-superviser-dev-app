@@ -28,7 +28,7 @@ for (const fichier of process.argv.slice(2)) {
 console.log('| Critère | Tests réussis | Tests en échec | Niveau |');
 console.log('|---|---|---|---|');
 for (const critere of CRITERES) {
-  console.log(`| ${critere} | ${reussis.get(critere)} | ${echoues.get(critere)} | ${[...niveaux.get(critere)].sort().join(', ') || '—'} |`);
+  console.log(`| ${critere} | ${reussis.get(critere)} | ${echoues.get(critere)} | ${[...niveaux.get(critere)].sort((a, b) => a.localeCompare(b)).join(', ') || '—'} |`);
 }
 const prouves = CRITERES.filter((critere) => reussis.get(critere) > 0 && echoues.get(critere) === 0).length;
 console.log(`\nI1 = ${prouves} critères prouvés sur ${CRITERES.length}, soit ${Math.round((100 * prouves) / CRITERES.length)} %`);

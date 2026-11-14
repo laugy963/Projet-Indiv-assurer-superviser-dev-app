@@ -114,7 +114,9 @@ describe('US-01 — Publier une annonce (POST /api/annonces)', () => {
       (m) => m.contenu as { id: string; donnees: { annonceId: string; typeAnnonce: string } },
     );
 
-    expect(recus.map((e) => e.donnees.annonceId).sort()).toEqual([premiere.body.id, seconde.body.id].sort());
+    // L'ordre d'arrivée des deux événements n'est pas garanti : les identifiants sont comparés triés.
+    const tries = (identifiants: string[]) => [...identifiants].sort((a, b) => a.localeCompare(b));
+    expect(tries(recus.map((e) => e.donnees.annonceId))).toEqual(tries([premiere.body.id, seconde.body.id]));
     expect(recus[0].id).not.toBe(recus[1].id);
     expect(await evenements.nombreApres(100)).toBe(0);
   });

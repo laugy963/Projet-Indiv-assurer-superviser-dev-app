@@ -9,7 +9,8 @@ import type { AddressInfo } from 'node:net';
 import { exportJWK, generateKeyPair, SignJWT, type JWK } from 'jose';
 
 export const AUDIENCE_DE_TEST = 'api-epouvante';
-export const EMETTEUR_DE_TEST = 'http://emetteur-de-test.invalid/realms/epouvante';
+// Un identifiant, jamais une adresse appelée : le domaine « .invalid » n'existe pas, par définition.
+export const EMETTEUR_DE_TEST = 'https://emetteur-de-test.invalid/realms/epouvante';
 
 export interface OptionsJeton {
   /** Identifiant du membre (revendication « sub »). Par défaut : un UUID tiré au hasard. */
