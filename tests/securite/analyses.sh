@@ -69,7 +69,7 @@ case "${1:-}" in
     # Image locale : lue auprès du moteur Docker. Image d'un registre : identifiants passés par
     # TRIVY_USERNAME et TRIVY_PASSWORD, s'ils sont définis (dans le pipeline, le jeton du job).
     ACCES=(-e TRIVY_USERNAME -e TRIVY_PASSWORD)
-    [ -S /var/run/docker.sock ] && ACCES+=(-v /var/run/docker.sock:/var/run/docker.sock)
+    if [[ -S /var/run/docker.sock ]]; then ACCES+=(-v /var/run/docker.sock:/var/run/docker.sock); fi
     trivy "${ACCES[@]}" "$TRIVY" "${OPTIONS[@]}" --quiet --format json --output "/rapports/image-$NOM.json" "$IMAGE"
     # « --table-mode detailed » : n'afficher que les vulnérabilités, pas la liste des centaines de paquets sains.
     trivy "${ACCES[@]}" "$TRIVY" "${OPTIONS[@]}" "${POLITIQUE[@]}" --quiet --table-mode detailed "$IMAGE"

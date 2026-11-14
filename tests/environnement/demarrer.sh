@@ -12,7 +12,7 @@ MODE="${1:-integration}"
 SECRETS="PG_ADMIN_MOT_DE_PASSE BDD_ANNONCES_MOT_DE_PASSE BDD_NOTIFICATIONS_MOT_DE_PASSE
 AMQP_ADMIN_MOT_DE_PASSE AMQP_ANNONCES_MOT_DE_PASSE AMQP_NOTIFICATIONS_MOT_DE_PASSE KC_ADMIN_MOT_DE_PASSE
 COMPTE_MEMBRE_A_MOT_DE_PASSE COMPTE_MEMBRE_B_MOT_DE_PASSE COMPTE_MEMBRE_C_MOT_DE_PASSE COMPTE_MODERATEUR_MOT_DE_PASSE"
-if [ ! -f .env ]; then
+if [[ ! -f .env ]]; then
   umask 077
   for nom in $SECRETS; do echo "$nom=$(openssl rand -hex 16)"; done > .env
   echo "Mots de passe aléatoires écrits dans tests/environnement/.env (non versionné)"
@@ -38,7 +38,7 @@ compte_broker notifications "$AMQP_NOTIFICATIONS_MOT_DE_PASSE" \
   '^(annonces|notifications\.annonce-publiee)$' '^notifications\.annonce-publiee$' '^(annonces|notifications\.annonce-publiee)$'
 echo "Broker prêt : topologie importée, comptes « annonces » et « notifications » créés"
 
-if [ "$MODE" != "acceptation" ]; then
+if [[ "$MODE" != "acceptation" ]]; then
   # Les tests d'intégration lancent eux-mêmes le service testé. Les conteneurs des services, s'ils existent,
   # sont arrêtés : ils liraient la même file et la même base que lui.
   dc --profile acceptation stop annonces notifications >/dev/null 2>&1 || true
@@ -66,7 +66,7 @@ echo "Keycloak prêt : comptes membre-a, membre-b, membre-c et moderateur-test c
 # 5. Les deux services. Sur le poste, ils sont construits depuis le code du dépôt.
 #    Dans le pipeline, IMAGE_ANNONCES et IMAGE_NOTIFICATIONS désignent les images du registre :
 #    elles sont tirées telles quelles (« construire une fois »), jamais reconstruites.
-if [ -n "${IMAGE_ANNONCES:-}" ] && [ -n "${IMAGE_NOTIFICATIONS:-}" ]; then
+if [[ -n "${IMAGE_ANNONCES:-}" && -n "${IMAGE_NOTIFICATIONS:-}" ]]; then
   dc --profile acceptation up -d --no-build --wait annonces notifications
 else
   dc --profile acceptation up -d --build --wait annonces notifications
