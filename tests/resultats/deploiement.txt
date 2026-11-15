@@ -1,0 +1,112 @@
+=== Vérification du prototype déployé — 2026-11-15 16:12:42
+Cluster : v1.35.5+k3s1, nœud arm64
+Images : epouvante/annonces:680e558857b9  epouvante/notifications:953d9fcd0264  
+
+--- 1. Disponibilité : pods, sondes, mise à l'échelle
+  RÉUSSI  pods annonces prêts, au moins 2 : oui
+  RÉUSSI  sondes de annonces : démarrage, prêt, vivant : /sante /sante/pret /sante
+  RÉUSSI  ressources de annonces : réservées et plafonnées : {"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"128Mi"}}
+  RÉUSSI  le HPA de annonces mesure le processeur : oui
+  RÉUSSI  pods notifications prêts, au moins 2 : oui
+  RÉUSSI  sondes de notifications : démarrage, prêt, vivant : /sante /sante/pret /sante
+  RÉUSSI  ressources de notifications : réservées et plafonnées : {"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"128Mi"}}
+  RÉUSSI  le HPA de notifications mesure le processeur : oui
+    NAME            REFERENCE                  TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+    annonces        Deployment/annonces        cpu: 11%/70%   2         4         2          177m
+    notifications   Deployment/notifications   cpu: 10%/70%   2         4         2          177m
+
+--- 2. HTTPS : redirection, certificat émis par cert-manager
+  RÉUSSI  requête HTTP : redirigée vers HTTPS : 301 https://api.epouvante.localhost/api/annonces
+  RÉUSSI  appel HTTPS vérifié avec l'autorité locale : code HTTP et vérification TLS (0 = chaîne valide) : 401 0
+  RÉUSSI  sans le certificat de l'autorité, le client refuse la connexion (code de sortie de curl) : 60
+  RÉUSSI  certificats « api-tls » et « identite-tls » prêts : True True 
+Certificat présenté par Traefik pour api.epouvante.localhost :
+    subject=
+    issuer=CN=AC locale du bac a sable
+    notBefore=Nov 15 12:14:44 2026 GMT
+    notAfter=Feb 13 12:14:44 2027 GMT
+    X509v3 Subject Alternative Name: critical
+        DNS:api.epouvante.localhost
+
+--- 3. Exposition : seules les routes /api et la délivrance des jetons sont visibles de l'extérieur
+  RÉUSSI  GET /api/annonces sans jeton : 401
+  RÉUSSI  GET /sante par l'Ingress : 404
+  RÉUSSI  GET /sante/pret par l'Ingress : 404
+  RÉUSSI  GET /metrics par l'Ingress : 404
+  RÉUSSI  console d'administration de Keycloak par l'Ingress : 404
+  RÉUSSI  émetteur annoncé par Keycloak : https://auth.epouvante.localhost/realms/epouvante
+
+--- 4. La chaîne complète à travers l'Ingress : jeton, publication, événement, notification
+  RÉUSSI  jetons délivrés par Keycloak à membre-a et membre-b : oui
+  RÉUSSI  membre-b choisit la catégorie « figurines » : 200
+  RÉUSSI  membre-a publie une annonce : 201
+  RÉUSSI  membre-b trouve la notification de cette annonce en moins de 5 secondes : oui
+  RÉUSSI  un membre ne peut pas retirer l'annonce (rôle moderateur exigé) : 403
+
+--- 5. Moindre privilège dans les conteneurs
+  RÉUSSI  utilisateur du conteneur annonces : 1000
+  RÉUSSI  système de fichiers de annonces en lecture seule : 1
+  RÉUSSI  jeton d'accès à l'API de Kubernetes dans le pod annonces : 0
+  RÉUSSI  utilisateur du conteneur notifications : 1000
+  RÉUSSI  système de fichiers de notifications en lecture seule : 1
+  RÉUSSI  jeton d'accès à l'API de Kubernetes dans le pod notifications : 0
+  RÉUSSI  un pod privilégié est refusé par l'espace de noms (Pod Security Admission) : 1
+    Error from server (Forbidden): pods "essai-privilegie" is forbidden: violates PodSecurity "restricted:latest": privileged (container "essai-privilegie" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container "essai-privilegie" must set securityContext.allowPrivile
+
+--- 6. Règles réseau : flux autorisés ouverts, tout le reste refusé
+  RÉUSSI  annonces -> postgresql:5432 (autorisé) : ouverte
+  RÉUSSI  annonces -> rabbitmq:5672 (autorisé) : ouverte
+  RÉUSSI  annonces -> keycloak:8080 (autorisé : lecture des clés publiques) : ouverte
+  RÉUSSI  annonces -> notifications:80 (interdit : les services ne se parlent que par le broker) : refusee
+  RÉUSSI  notifications -> annonces:80 (interdit) : refusee
+  RÉUSSI  annonces -> rabbitmq:15672, console de gestion du broker (interdit) : refusee
+  RÉUSSI  annonces -> API de Kubernetes (interdit) : refusee
+  RÉUSSI  annonces -> Internet, 1.1.1.1:443 (interdit) : refusee
+  RÉUSSI  keycloak -> rabbitmq:5672 (interdit) : refusee
+  RÉUSSI  pod d'un autre espace de noms -> postgresql:5432 (interdit) : refusee
+Règle posée par k3s au bout de la chaîne de pare-feu d'un pod :
+    -m comment --comment "rule to REJECT traffic destined for POD name:keycloak-6db5d7d646-r9qs9 namespace: epouvante" -m mark ! --mark 0x10000/0x10000 -j REJECT --reject-with icmp-port-unreachable
+
+--- 7. Observabilité : Prometheus collecte chaque pod
+  RÉUSSI  pods annonces collectés par Prometheus, au moins 2 : oui
+  RÉUSSI  pods notifications collectés par Prometheus, au moins 2 : oui
+  RÉUSSI  broker collecté par Prometheus : 1
+  RÉUSSI  la publication du volet 4 est comptée (POST /api/annonces, code 201) : oui
+  RÉUSSI  le temps de réponse au 95e centile se calcule (indicateur I2) : oui
+Pods de l'espace de noms monitoring :
+    prometheus-supervision-prometheus-0  2/2  Running
+    supervision-kube-state-metrics-6bf7f85c59-vphkb  1/1  Running
+    supervision-operator-d5869f86f-sxt78  1/1  Running
+
+--- 8. Perte d'un pod : le service continue, le pod est remplacé, le nouveau pod est collecté
+Pod supprimé : annonces-97746b4d8-jhccm. 60 appels à GET /api/annonces pendant son remplacement :
+Codes reçus : 60 × 401  
+  RÉUSSI  réponses autres que celle attendue (401, sans jeton) pendant le remplacement : 0
+  RÉUSSI  pods annonces prêts après le remplacement, au moins 2 : oui
+  RÉUSSI  le pod supprimé n'existe plus : 0
+  RÉUSSI  Prometheus collecte de nouveau 2 pods annonces, sans le pod supprimé : 2 aucune
+
+--- Mémoire et processeur (kubectl top, mesure instantanée)
+    NAME                     CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+    k3d-epouvante-server-0   1253m        15%      2645Mi          67%         
+    NAMESPACE      NAME                                              CPU(cores)   MEMORY(bytes)   
+    epouvante      keycloak-6db5d7d646-r9qs9                         32m          520Mi           
+    monitoring     prometheus-supervision-prometheus-0               34m          139Mi           
+    epouvante      rabbitmq-0                                        24m          100Mi           
+    epouvante      notifications-75dcf797c4-55x69                    57m          68Mi            
+    kube-system    traefik-5f7d47cf7d-xfhw7                          65m          67Mi            
+    epouvante      annonces-97746b4d8-mzk6b                          52m          60Mi            
+    epouvante      annonces-97746b4d8-4w96s                          174m         59Mi            
+    epouvante      notifications-75dcf797c4-59dz2                    28m          57Mi            
+    epouvante      postgresql-0                                      39m          57Mi            
+    monitoring     supervision-operator-d5869f86f-sxt78              16m          51Mi            
+    cert-manager   cert-manager-7b64759498-qd542                     16m          50Mi            
+    monitoring     supervision-kube-state-metrics-6bf7f85c59-vphkb   16m          47Mi            
+    kube-system    metrics-server-786d997795-56l6k                   22m          45Mi            
+    cert-manager   cert-manager-cainjector-5d85cc9c99-q4hcn          7m           37Mi            
+    kube-system    coredns-8db54c48d-hm2wm                           25m          36Mi            
+    cert-manager   cert-manager-webhook-674b6c7468-8xnxd             3m           18Mi            
+    kube-system    local-path-provisioner-5d9d9885bc-9htbq           2m           16Mi            
+    kube-system    svclb-traefik-bd6fe22e-q5n7k                      0m           0Mi             
+
+BILAN : tous les contrôles sont réussis

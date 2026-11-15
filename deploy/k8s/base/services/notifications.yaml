@@ -1,0 +1,129 @@
+# Service notifications : centres d'intérêt, notifications, consommation de l'événement « annonce.publiee ».
+# Sans état : n'importe quel pod traite n'importe quelle requête. Tous les pods lisent la même file du broker,
+# qui remet chaque message à un seul d'entre eux.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: notifications
+automountServiceAccountToken: false     # le service n'appelle pas l'API de Kubernetes : aucun jeton dans le pod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+  labels: {app: notifications}
+spec:
+  # Pas de « replicas » : c'est le HPA qui décide du nombre de pods (voir plus bas).
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    # Mise à jour sans coupure : un nouveau pod doit être prêt avant qu'un ancien soit retiré.
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  selector:
+    matchLabels: {app: notifications}
+  template:
+    metadata:
+      labels: {app: notifications}
+    spec:
+      serviceAccountName: notifications
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000        # l'utilisateur « node » de l'image, désigné par son numéro (règle du bac à sable)
+        runAsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        # Les migrations d'abord, puis le service (fiche 0008) : le schéma n'est jamais modifié par un service en marche.
+        - name: migrations
+          # Nom d'image provisoire : chaque déploiement le remplace par l'image voulue (bloc « images » de Kustomize).
+          # L'étiquette « a-fixer » n'existe pas : appliquée sans variante, la base échoue au lieu de tirer « latest ».
+          image: epouvante/notifications:a-fixer
+          command: ["node", "dist/migrer.js"]
+          # « &reglages » nomme ce bloc ; « *reglages », plus bas, le reprend tel quel :
+          # le programme de migration et le service lisent exactement les mêmes réglages.
+          envFrom: &reglages
+            - configMapRef: {name: services-config}    # adresses de la base, du broker et de Keycloak
+            - configMapRef: {name: notifications-config}    # nom de sa base et de ses comptes
+            - secretRef: {name: notifications-acces}        # ses deux mots de passe, et seulement les siens
+          securityContext: &conteneur-durci
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 500m, memory: 192Mi}
+      containers:
+        - name: notifications
+          image: epouvante/notifications:a-fixer
+          ports:
+            - {name: http, containerPort: 3000}
+          envFrom: *reglages
+          securityContext: *conteneur-durci
+          resources:
+            # « requests » : ce que le pod réserve. Le HPA calcule son pourcentage d'utilisation sur requests.cpu.
+            # « limits » : le plafond. Processeur dépassé : le conteneur est ralenti. Mémoire dépassée : il est tué.
+            requests: {cpu: 250m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          # Avant d'arrêter un pod, Kubernetes fait deux choses en même temps : il le retire du Service et il lui
+          # envoie le signal d'arrêt. Traefik met un instant à apprendre le retrait, et adresse encore des requêtes
+          # à un pod qui ferme. Constaté le 15 novembre 2026 : une erreur 502 sur 3 suppressions de pod sur 5.
+          # Le pod attend donc 5 secondes, en continuant de servir, avant de recevoir le signal.
+          lifecycle:
+            preStop:
+              sleep: {seconds: 5}
+          # Sonde de démarrage : tant qu'elle n'a pas réussi, les deux autres attendent.
+          startupProbe:
+            httpGet: {path: /sante, port: http}
+            periodSeconds: 2
+            failureThreshold: 30
+          # Sonde « prêt » : la base répond-elle ? Sinon le pod sort du Service, sans redémarrage.
+          readinessProbe:
+            httpGet: {path: /sante/pret, port: http}
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          # Sonde « vivant » : le processus répond-il ? Sinon le conteneur est redémarré.
+          # Elle ne teste aucune dépendance : une panne de la base ne doit pas redémarrer tous les pods en boucle.
+          livenessProbe:
+            httpGet: {path: /sante, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+  labels: {app: notifications}
+spec:
+  selector: {app: notifications}
+  ports:
+    - {name: http, port: 80, targetPort: http}   # port nommé : il suit celui du conteneur
+---
+# Mise à l'échelle automatique (HPA) sur l'utilisation du processeur, mesurée par metrics-server.
+# Pods voulus = arrondi supérieur de (pods actuels × utilisation mesurée ÷ cible).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: notifications
+  labels: {app: notifications}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: notifications}
+  minReplicas: 2               # deux au minimum : la perte d'un pod n'interrompt pas le service
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 70}   # en % de requests.cpu
+  behavior:
+    # Montée : un pod de plus toutes les 30 secondes au plus. Par défaut, le HPA peut doubler le nombre de pods
+    # d'un coup : le 15 novembre 2026, le démarrage simultané de quatre pods sous charge a saturé le poste.
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - {type: Pods, value: 1, periodSeconds: 30}
+    # Descente : la valeur par défaut de Kubernetes, écrite ici pour être lue. Le HPA attend 5 minutes
+    # de charge basse avant de retirer un pod, pour ne pas osciller.
+    scaleDown:
+      stabilizationWindowSeconds: 300

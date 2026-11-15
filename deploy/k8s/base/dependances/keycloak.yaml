@@ -1,0 +1,78 @@
+# Keycloak : le serveur d'identité (fiche 0009), en mode production derrière l'Ingress HTTPS.
+# Le Secret « keycloak-acces » et le ConfigMap « royaume » sont créés par deployer.sh.
+# Le royaume vient de deploy/keycloak/epouvante-realm.json : le même fichier que dans l'environnement de test.
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels: {app: keycloak}
+spec:
+  selector: {app: keycloak}
+  ports:
+    - {name: http, port: 8080, targetPort: http}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels: {app: keycloak}
+spec:
+  replicas: 1
+  # Un seul pod : l'ancien s'arrête avant que le nouveau démarre. Deux Keycloak côte à côte
+  # demanderaient un cache partagé, hors du prototype, et 500 Mio de plus sur le poste.
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: keycloak}
+  template:
+    metadata:
+      labels: {app: keycloak}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true     # l'image tourne avec l'utilisateur 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.8.2
+          # « start » = mode production. Le royaume du projet est importé au premier démarrage.
+          args: ["start", "--import-realm"]
+          ports:
+            - {name: http, containerPort: 8080}
+            - {name: gestion, containerPort: 9000}     # sondes de santé
+          envFrom:
+            # KC_HOSTNAME : l'adresse publique, écrite comme émetteur dans les jetons. Elle dépend de l'environnement.
+            - configMapRef: {name: identite-config}
+            # KC_DB_PASSWORD et le compte d'administration provisoire, créé au premier démarrage.
+            - secretRef: {name: keycloak-acces}
+          env:
+            - {name: KC_DB, value: postgres}
+            - {name: KC_DB_URL, value: "jdbc:postgresql://postgresql:5432/keycloak"}
+            - {name: KC_DB_USERNAME, value: keycloak}
+            # Le HTTPS est terminé par Traefik : Keycloak reçoit du HTTP et lit les en-têtes X-Forwarded-*.
+            - {name: KC_HTTP_ENABLED, value: "true"}
+            - {name: KC_PROXY_HEADERS, value: xforwarded}
+            - {name: KC_HEALTH_ENABLED, value: "true"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "2", memory: 1Gi}
+          startupProbe:          # laisse jusqu'à 5 minutes au premier démarrage
+            httpGet: {path: /health/started, port: gestion}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /health/ready, port: gestion}
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: {path: /health/live, port: gestion}
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - {name: royaume, mountPath: /opt/keycloak/data/import, readOnly: true}
+      volumes:
+        - name: royaume
+          configMap: {name: royaume}

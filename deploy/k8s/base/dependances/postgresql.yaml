@@ -1,0 +1,84 @@
+# PostgreSQL : une instance, une base et un compte par service (fiche 0008), plus la base de Keycloak.
+# Les Secrets sont créés par deployer.sh, avec des mots de passe tirés au hasard : aucun n'est dans le dépôt.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  labels: {app: postgresql}
+spec:
+  clusterIP: None            # service « headless » : donne un nom DNS stable au pod du StatefulSet
+  selector: {app: postgresql}
+  ports:
+    - {name: sql, port: 5432}
+---
+# StatefulSet et non Deployment : le pod garde son nom (postgresql-0) et son volume d'un redémarrage à l'autre.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  labels: {app: postgresql}
+spec:
+  serviceName: postgresql
+  replicas: 1
+  selector:
+    matchLabels: {app: postgresql}
+  template:
+    metadata:
+      labels: {app: postgresql}
+    spec:
+      automountServiceAccountToken: false   # la base n'appelle pas l'API de Kubernetes
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70          # utilisateur « postgres » de l'image alpine
+        runAsGroup: 70
+        fsGroup: 70
+        # Règle du bac à sable : sans cette ligne, Kubernetes retouche les droits du volume à chaque démarrage,
+        # et PostgreSQL refuse un dossier de données lisible par le groupe.
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: postgresql
+          image: postgres:18.7-alpine
+          ports:
+            - {name: sql, containerPort: 5432}
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: postgresql-admin, key: mot-de-passe}}
+            # Lus une seule fois, par le script d'initialisation ci-dessous.
+            - name: BDD_ANNONCES_MOT_DE_PASSE
+              valueFrom: {secretKeyRef: {name: annonces-acces, key: BDD_MOT_DE_PASSE}}
+            - name: BDD_NOTIFICATIONS_MOT_DE_PASSE
+              valueFrom: {secretKeyRef: {name: notifications-acces, key: BDD_MOT_DE_PASSE}}
+            - name: BDD_KEYCLOAK_MOT_DE_PASSE
+              valueFrom: {secretKeyRef: {name: keycloak-acces, key: KC_DB_PASSWORD}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 384Mi}
+          # « -h 127.0.0.1 » : pendant l'initialisation, l'image lance un serveur provisoire qui n'écoute que
+          # sur un socket local. La sonde ne réussit qu'une fois les bases créées et le vrai serveur en écoute.
+          readinessProbe:
+            exec: {command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]}
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            exec: {command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+          volumeMounts:
+            # PostgreSQL 18 range ses données sous /var/lib/postgresql/18 : le volume se monte un niveau au-dessus.
+            - {name: donnees, mountPath: /var/lib/postgresql}
+            - {name: initialisation, mountPath: /docker-entrypoint-initdb.d, readOnly: true}
+      volumes:
+        - name: initialisation
+          configMap: {name: postgresql-initialisation}
+  volumeClaimTemplates:
+    - metadata:
+        name: donnees
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: {storage: 1Gi}

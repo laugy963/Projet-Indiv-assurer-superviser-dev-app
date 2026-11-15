@@ -1,0 +1,83 @@
+# RabbitMQ : le broker de messages (fiche 0007). Un nœud, avec un stockage durable.
+# La topologie (exchange, files, liaison) et les comptes des services sont posés par deployer.sh,
+# avec les mêmes commandes que dans l'environnement de test : aucun compte n'est dans le dépôt.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels: {app: rabbitmq}
+spec:
+  clusterIP: None            # service « headless » : donne un nom DNS stable au pod du StatefulSet
+  selector: {app: rabbitmq}
+  ports:
+    - {name: amqp, port: 5672}
+    - {name: metriques, port: 15692}
+---
+# StatefulSet et non Deployment : le pod garde le même nom (rabbitmq-0) et le même volume.
+# RabbitMQ range ses données sous le nom de son nœud : un nom qui change les rendrait introuvables.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  labels: {app: rabbitmq}
+spec:
+  serviceName: rabbitmq
+  replicas: 1
+  selector:
+    matchLabels: {app: rabbitmq}
+  template:
+    metadata:
+      labels: {app: rabbitmq}
+    spec:
+      automountServiceAccountToken: false   # le broker n'appelle pas l'API de Kubernetes
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100         # utilisateur « rabbitmq » de l'image
+        runAsGroup: 101
+        fsGroup: 101           # donne au groupe l'accès au volume
+        # Règle du bac à sable : sans cette ligne, Kubernetes réapplique les droits du groupe sur tout le volume
+        # à chaque démarrage. Le fichier .erlang.cookie devient lisible par le groupe et RabbitMQ refuse de démarrer.
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.4.0-management-alpine
+          ports:
+            - {name: amqp, containerPort: 5672}
+            - {name: metriques, containerPort: 15692}   # extension Prometheus du broker
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom: {secretKeyRef: {name: rabbitmq-admin, key: utilisateur}}
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom: {secretKeyRef: {name: rabbitmq-admin, key: mot-de-passe}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          # Sondes par simple connexion TCP au port AMQP, et non par la commande « rabbitmq-diagnostics ».
+          # Cette commande lance une machine virtuelle Erlang à chaque passage : sur le poste chargé, elle a dépassé
+          # son délai, et Kubernetes a redémarré le broker (constaté le 15 novembre 2026). Une connexion TCP ne coûte rien.
+          startupProbe:        # laisse jusqu'à 2 minutes au démarrage
+            tcpSocket: {port: amqp}
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:      # le pod ne reçoit du trafic que quand le broker accepte les connexions
+            tcpSocket: {port: amqp}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket: {port: amqp}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - {name: donnees, mountPath: /var/lib/rabbitmq}
+  volumeClaimTemplates:
+    - metadata:
+        name: donnees
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: {storage: 1Gi}

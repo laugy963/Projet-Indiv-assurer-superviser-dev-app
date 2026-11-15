@@ -1,0 +1,156 @@
+# Règles réseau de l'espace de noms (NetworkPolicy). Méthode du cours : tout fermer, puis ouvrir flux par flux.
+# Par défaut, le réseau d'un cluster est plat : n'importe quel pod peut parler à n'importe quel autre.
+# Ici, un pod compromis ne peut joindre que ce dont son service a besoin (risque R7 de l'architecture).
+#
+# Chaque flux du schéma d'architecture demande deux ouvertures : la sortie chez l'émetteur, l'entrée chez le destinataire.
+# Une connexion interdite n'est pas refusée : ses paquets sont jetés, et l'appelant attend jusqu'à son délai maximum.
+#
+#   Flux autorisé                               Port
+#   Traefik (Ingress)  -> annonces, notifications   3000
+#   Traefik (Ingress)  -> keycloak                  8080
+#   annonces, notifications -> postgresql           5432
+#   annonces, notifications -> rabbitmq             5672
+#   annonces, notifications -> keycloak             8080   (lecture des clés publiques)
+#   keycloak           -> postgresql                5432
+#   Prometheus         -> annonces, notifications   3000   (route /metrics)
+#   Prometheus         -> rabbitmq                  15692
+#   tous les pods      -> DNS du cluster            53
+#
+# Ce qui n'apparaît pas est interdit. En particulier : aucun flux entre annonces et notifications
+# (ils ne se parlent que par le broker, fiche 0007), et aucune sortie vers Internet.
+
+# 1. Tout fermer : en entrée et en sortie, pour tous les pods de l'espace de noms.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: refus-par-defaut
+spec:
+  podSelector: {}              # {} = tous les pods
+  policyTypes: ["Ingress", "Egress"]
+---
+# 2. Le DNS du cluster : sans lui, plus aucun nom de Service ne se résout.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dns
+spec:
+  podSelector: {}
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+          podSelector:           # même élément que le namespaceSelector : les deux conditions (ET)
+            matchLabels: {k8s-app: kube-dns}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+# 3. Les deux services du prototype : mêmes besoins, une seule règle.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: services
+spec:
+  podSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: [annonces, notifications]}
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:                    # le point d'entrée
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+          podSelector:
+            matchLabels: {app.kubernetes.io/name: traefik}
+        - namespaceSelector:   # la collecte des métriques
+            matchLabels: {kubernetes.io/metadata.name: monitoring}
+          podSelector:
+            matchLabels: {app.kubernetes.io/name: prometheus}
+      ports:
+        - {protocol: TCP, port: 3000}   # port du pod, pas celui du Service
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {app: postgresql}
+      ports:
+        - {protocol: TCP, port: 5432}
+    - to:
+        - podSelector:
+            matchLabels: {app: rabbitmq}
+      ports:
+        - {protocol: TCP, port: 5672}
+    - to:
+        - podSelector:
+            matchLabels: {app: keycloak}
+      ports:
+        - {protocol: TCP, port: 8080}
+---
+# 4. PostgreSQL : entrée depuis les deux services et Keycloak. Aucune sortie.
+#    Le cloisonnement entre les bases se fait ensuite par les comptes : un compte, une base (fiche 0008).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql
+spec:
+  podSelector:
+    matchLabels: {app: postgresql}
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - {key: app, operator: In, values: [annonces, notifications, keycloak]}
+      ports:
+        - {protocol: TCP, port: 5432}
+---
+# 5. RabbitMQ : entrée depuis les deux services, et depuis Prometheus pour ses métriques. Aucune sortie.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rabbitmq
+spec:
+  podSelector:
+    matchLabels: {app: rabbitmq}
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - {key: app, operator: In, values: [annonces, notifications]}
+      ports:
+        - {protocol: TCP, port: 5672}
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: monitoring}
+          podSelector:
+            matchLabels: {app.kubernetes.io/name: prometheus}
+      ports:
+        - {protocol: TCP, port: 15692}
+---
+# 6. Keycloak : entrée depuis le point d'entrée (les clients demandent leurs jetons) et depuis les deux services
+#    (ils lisent ses clés publiques). Sortie vers sa base seulement.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keycloak
+spec:
+  podSelector:
+    matchLabels: {app: keycloak}
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+          podSelector:
+            matchLabels: {app.kubernetes.io/name: traefik}
+        - podSelector:
+            matchExpressions:
+              - {key: app, operator: In, values: [annonces, notifications]}
+      ports:
+        - {protocol: TCP, port: 8080}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {app: postgresql}
+      ports:
+        - {protocol: TCP, port: 5432}

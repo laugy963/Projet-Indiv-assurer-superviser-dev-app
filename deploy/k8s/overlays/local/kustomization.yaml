@@ -1,0 +1,26 @@
+# Variante « local » : le cluster k3d du poste (deploy/k3d/).
+# Elle ne contient que ce qui diffère de la base : noms d'hôte, émetteur de certificats, images.
+# Appliquer avec deploy/k8s/deployer.sh, qui crée d'abord les Secrets et fixe les images.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: epouvante
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+# Les deux réglages qui portent l'adresse publique de Keycloak : « merge » ne remplace que ces clés.
+configMapGenerator:
+  - name: identite-config
+    behavior: merge
+    literals:
+      - KC_HOSTNAME=https://auth.epouvante.localhost
+  - name: services-config
+    behavior: merge
+    literals:
+      - OIDC_EMETTEUR=https://auth.epouvante.localhost/realms/epouvante
+
+# Les images : deployer.sh ajoute ici, dans une copie de travail, le bloc « images » qui remplace
+# « epouvante/annonces » et « epouvante/notifications » par l'image voulue (construite sur le poste,
+# ou tirée du registre par son empreinte). Le fichier versionné ne porte donc jamais d'étiquette mobile.

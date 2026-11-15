@@ -1,0 +1,33 @@
+# ServiceMonitor : objet de l'opérateur Prometheus qui dit quoi collecter. Il désigne des Services par leurs
+# étiquettes ; Prometheus interroge alors chaque pod qui se trouve derrière, un par un.
+# Un nouveau pod créé par le HPA est donc collecté sans aucun réglage.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: services
+  namespace: epouvante
+spec:
+  selector:
+    matchExpressions:
+      - {key: app, operator: In, values: [annonces, notifications]}
+  endpoints:
+    - port: http             # le port nommé du Service
+      path: /metrics         # route interne des services, jamais exposée par l'Ingress
+      interval: 15s
+---
+# Le broker expose ses propres métriques (extension Prometheus de RabbitMQ).
+# On ne lit que deux familles : le nombre de messages par file et le nombre de consommateurs.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq
+  namespace: epouvante
+spec:
+  selector:
+    matchLabels: {app: rabbitmq}
+  endpoints:
+    - port: metriques
+      path: /metrics/detailed
+      params:
+        family: [queue_coarse_metrics, queue_consumer_count]
+      interval: 15s
