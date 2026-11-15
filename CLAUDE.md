@@ -28,7 +28,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
 - `docs/journal.md` — journal de bord : actions réellement menées et leurs résultats
-- `docs/schemas/`, `docs/experimentations/`, `docs/soutenance/` — livrables des étapes 2-3, 4 et 9
+- `docs/schemas/`, `docs/experimentations/`, `docs/soutenance/` — livrables des étapes 2-3, 4 et 9 ; `docs/captures/` — captures du tableau de bord Grafana, avec leur légende
 
 Avancement : ne pas le déduire de ce fichier. Le lire dans `README.md` (tableau « Avancement ») et en fin de `docs/journal.md`.
 
@@ -85,6 +85,7 @@ Ajouter ici les commandes de déploiement dès qu'elles existent et ont été ex
   appeler le prototype déployé : `source deploy/k8s/acces.sh`, puis `npm run test:acceptation` ou `curl --cacert "$AC_LOCALE" "$URL_API/api/annonces"` ;
   test de charge : `tests/charge/lancer.sh essai` (80 s), `tests/charge/lancer.sh` (13 min de charge, 50 puis 200 utilisateurs, puis 5 à 7 min de retour au minimum de pods) ; autres paliers par `CHARGE_NOMINALE` et `CHARGE_POINTE` ; analyse des manifestes `tests/securite/analyses.sh manifestes` ;
   Grafana : `kubectl -n monitoring scale deploy supervision-grafana --replicas=1` puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` ; le refermer par `--replicas=0`.
+  Captures du tableau de bord, sans affichage (Chrome et Node.js) : `deploy/k8s/observabilite/capturer.sh <début> <fin> docs/captures <préfixe>`, heures locales au format `2026-11-15T16:55` ; à faire dans les 24 heures que garde Prometheus.
   Avant un test de charge : arrêter les autres conteneurs Docker, refermer Grafana, ne rien lancer d'autre sur le poste. Ne pas relever l'état du broker par `rabbitmqctl` pendant un test : la commande fausse la mesure.
 - Cluster local k3d, détail dans `deploy/k3d/README.md` (exécutées le 13 novembre 2026) :
   créer `k3d cluster create --config deploy/k3d/cluster.yaml` ; relancer ou arrêter `k3d cluster start epouvante`, `k3d cluster stop epouvante` ; accès `source deploy/k3d/env.sh` avant tout `kubectl` ou `helm` (fichier d'accès propre au projet, `~/.kube/config` n'est pas utilisé).

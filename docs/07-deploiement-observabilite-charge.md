@@ -5,7 +5,7 @@
 - Références : [architecture, paragraphes 8 à 10](03-architecture.md), [indicateurs I2 et I4](02-processus-developpement.md#2-indicateurs-de-qualité), [pipeline](06-pipeline-ci-cd.md)
 - Fichiers : [deploy/k8s/](../deploy/k8s/README.md), [tests/charge/](../tests/README.md#test-de-charge)
 - Décision prise à cette étape : fiche [0017](adr/0017-manifestes-et-kustomize.md)
-- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt) et [ce qu'en a vu la supervision](../tests/resultats/charge-50-200-supervision.csv), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt) ; [pull request n° 3](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/3)
+- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt), [ce qu'en a vu la supervision](../tests/resultats/charge-50-200-supervision.csv) et [les captures du tableau de bord](captures/README.md), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt) ; [pull request n° 3](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/3)
 
 ## 1. Objet
 
@@ -37,7 +37,8 @@ Quatre paramètres n'étaient fixés par aucun document. Choix du 15 novembre 20
 | Déploiement | `deploy/k8s/deployer.sh` | Tout l'ordre du déploiement, Secrets créés au hasard |
 | Vérification | `deploy/k8s/verifier.sh` | 49 contrôles, en 8 volets |
 | Accès depuis le poste | `deploy/k8s/acces.sh` | Adresses, certificat de l'autorité locale, comptes de test |
-| Supervision | `deploy/k8s/observabilite/` | Valeurs du chart Helm, objets de collecte, tableau de bord Grafana, script d'installation |
+| Supervision | `deploy/k8s/observabilite/` | Valeurs du chart Helm, objets de collecte, tableau de bord Grafana, scripts d'installation et de capture |
+| Captures du tableau de bord | `docs/captures/` | Six captures du test de charge de référence, avec leur légende |
 | Test de charge | `tests/charge/` | Scénario k6, lanceur, création des comptes |
 | Analyse des manifestes | `tests/securite/analyses.sh manifestes` | Trivy, mode configuration, sur `deploy/k8s/` |
 | Preuves | `tests/resultats/` | `deploiement.txt` ; `charge-50-200.txt`, `charge-50-200-supervision.csv`, `charge-20-80.txt`, `charge-50-200-execution-1.txt` |
@@ -277,6 +278,12 @@ Le broker expose ses propres métriques : le nombre de messages en attente dans 
 
 Grafana n'est pas exposé par l'Ingress : on y accède par `kubectl port-forward`, comme en cours. Sur le poste, il est lancé à la demande (paragraphe 10, difficulté 2) ; Prometheus, lui, collecte en continu.
 
+Le tableau de bord pendant le test de charge de référence (paragraphe 8.6), de 16 h 55 à 17 h 20 :
+
+![Tableau de bord du prototype pendant le test de charge : huit panneaux](captures/charge-50-200-ensemble.png)
+
+Les captures sont prises par un script, sans affichage : `deploy/k8s/observabilite/capturer.sh`. Chaque panneau a aussi sa capture en grand, avec ce qu'il faut y lire : [docs/captures/](captures/README.md).
+
 ## 8. Test de charge
 
 ### 8.1 Scénario
@@ -376,7 +383,7 @@ Comportement de la mise à l'échelle :
 | 17 h 09 min 12 s | Le HPA demande un quatrième pod pour notifications : prêt en 31 secondes, la charge étant retombée |
 | 17 h 15 min 21 s | 5 minutes après la fin de la charge, le HPA ramène chaque service à 2 pods |
 
-Pendant ce test, aucun conteneur du prototype n'a redémarré. Quatre composants d'infrastructure l'ont fait (cert-manager, metrics-server, kube-state-metrics, l'opérateur Prometheus). La file du broker n'a jamais dépassé 5 messages en attente.
+Ces faits se lisent sur les [captures du tableau de bord](captures/README.md). Pendant ce test, aucun conteneur du prototype n'a redémarré. Quatre composants d'infrastructure l'ont fait (cert-manager, metrics-server, kube-state-metrics, l'opérateur Prometheus). La file du broker n'a jamais dépassé 5 messages en attente.
 
 Recoupement par la supervision. Prometheus mesure côté serveur ce que k6 mesure côté client. Il ne garde que 24 heures de mesures : les séries du tableau de bord sur la période du test sont exportées dans [charge-50-200-supervision.csv](../tests/resultats/charge-50-200-supervision.csv) par `tests/charge/exporter-supervision.sh`.
 
@@ -525,6 +532,7 @@ Depuis la racine du dépôt. Commandes exécutées avec succès le 15 novembre 2
 | Test de charge, 50 puis 200 utilisateurs | `tests/charge/lancer.sh` |
 | Test de charge, autres paliers | `CHARGE_NOMINALE=20 CHARGE_POINTE=80 tests/charge/lancer.sh` |
 | Exporter ce que la supervision a vu d'un test | `tests/charge/exporter-supervision.sh <début UTC> <fin UTC> <fichier>` |
+| Capturer le tableau de bord sur une période | `deploy/k8s/observabilite/capturer.sh <début> <fin> <dossier> <préfixe>`, en heure locale |
 | Déployer les images du pipeline | `IMAGE_ANNONCES=ghcr.io/…@sha256:… IMAGE_NOTIFICATIONS=ghcr.io/…@sha256:… deploy/k8s/deployer.sh` |
 | Ouvrir Grafana | `kubectl -n monitoring scale deploy supervision-grafana --replicas=1`, puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` |
 | Arrêter le cluster | `k3d cluster stop epouvante` |

@@ -10,7 +10,7 @@ Manifestes et scripts de l'étape 7. Les manifestes sont des fichiers YAML assem
 | `base/services/` | Les deux services : Deployment, sondes, ressources, Service, HPA |
 | `overlays/local/` | Variante du cluster k3d : noms d'hôte en `.localhost`, Ingress, émetteur de certificats local |
 | `cluster/` | Prérequis du cluster : redirection de HTTP vers HTTPS, émetteur de certificats |
-| `observabilite/` | Prometheus et Grafana : valeurs du chart Helm, objets de collecte, tableau de bord, script d'installation |
+| `observabilite/` | Prometheus et Grafana : valeurs du chart Helm, objets de collecte, tableau de bord, scripts d'installation et de capture |
 | `deployer.sh` | Déploie tout, dans l'ordre. Crée les Secrets au hasard : aucun n'est dans le dépôt |
 | `verifier.sh` | Contrôle le déploiement : 49 contrôles, résultat dans `tests/resultats/deploiement.txt` |
 | `acces.sh` | À charger pour appeler le prototype depuis le poste : adresses, certificat de l'autorité locale, comptes de test |
@@ -31,6 +31,7 @@ Depuis la racine du dépôt, le cluster k3d étant démarré (`deploy/k3d/README
 | Appeler l'API à la main | `source deploy/k8s/acces.sh && curl --cacert "$AC_LOCALE" "$URL_API/api/annonces"` | — |
 | Ouvrir Grafana | `kubectl -n monitoring scale deploy supervision-grafana --replicas=1`, puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` | — |
 | Refermer Grafana | `kubectl -n monitoring scale deploy supervision-grafana --replicas=0` | — |
+| Capturer le tableau de bord sur une période, en images | `deploy/k8s/observabilite/capturer.sh 2026-11-15T16:55 2026-11-15T17:20 docs/captures charge-50-200` | 1 min 30 s |
 
 `source deploy/k3d/env.sh` avant toute commande `kubectl` ou `helm` lancée à la main.
 

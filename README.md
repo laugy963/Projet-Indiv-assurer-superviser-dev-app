@@ -59,6 +59,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
     ├── schemas/           schémas draw.io : source .drawio, export .png, page .md
+    ├── captures/          captures du tableau de bord Grafana pendant le test de charge (étape 7)
     ├── experimentations/  synthèses des protocoles d'expérimentation
     └── soutenance/        support et script de démonstration
 ```
