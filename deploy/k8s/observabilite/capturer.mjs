@@ -5,13 +5,16 @@
 //   node capturer.mjs <début> <fin> <dossier de sortie> <préfixe>
 //   début et fin : heure locale, par exemple 2026-11-15T16:55
 //
-// Réglages lus dans l'environnement : GRAFANA_URL, GRAFANA_MOT_DE_PASSE, CHROME_URL.
+// Seul réglage lu dans l'environnement : GRAFANA_MOT_DE_PASSE.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const [debut, fin, dossier, prefixe] = process.argv.slice(2);
-const GRAFANA = process.env.GRAFANA_URL ?? 'http://127.0.0.1:3000';
-const CHROME = process.env.CHROME_URL ?? 'http://127.0.0.1:9333';
+// Adresses locales, fixées ici et dans capturer.sh : le programme ne se connecte à aucune adresse reçue d'ailleurs.
+// SonarQube Cloud a signalé la première version, qui lisait ces adresses dans l'environnement puis dans la réponse
+// de Chrome sans les vérifier (constats S7044, S8476 et S8480 du 15 novembre 2026).
+const GRAFANA = 'http://127.0.0.1:13000';
+const CHROME = '127.0.0.1:9333';
 const motDePasse = process.env.GRAFANA_MOT_DE_PASSE;
 if (!debut || !fin || !dossier || !prefixe || !motDePasse) {
   console.error('Usage : capturer.sh <début> <fin> <dossier de sortie> <préfixe>   (heure locale : 2026-11-15T16:55)');
@@ -34,8 +37,12 @@ const VUES = [
 const pause = (ms) => new Promise((suite) => setTimeout(suite, ms));
 
 // Un onglet neuf, puis une connexion WebSocket à cet onglet : chaque commande reçoit une réponse au même numéro.
-const onglet = await (await fetch(`${CHROME}/json/new?about:blank`, { method: 'PUT' })).json();
-const liaison = new WebSocket(onglet.webSocketDebuggerUrl);
+// De la réponse de Chrome, on ne garde que l'identifiant de l'onglet, après avoir vérifié sa forme :
+// l'adresse de la connexion est construite ici, elle n'est pas reprise telle quelle.
+const reponseOnglet = await (await fetch(`http://${CHROME}/json/new?about:blank`, { method: 'PUT' })).json();
+const ongletId = String(reponseOnglet.id);
+if (!/^[0-9A-F]{32}$/.test(ongletId)) throw new Error('Identifiant d’onglet inattendu dans la réponse de Chrome');
+const liaison = new WebSocket(`ws://${CHROME}/devtools/page/${ongletId}`);
 await new Promise((ouverte, erreur) => {
   liaison.onopen = ouverte;
   liaison.onerror = erreur;
@@ -110,5 +117,5 @@ for (const vue of VUES) {
   console.log(`${fichier} (${courbes} graphique${courbes > 1 ? 's' : ''} sur ${attendus})`);
 }
 
-await fetch(`${CHROME}/json/close/${onglet.id}`);
+await fetch(`http://${CHROME}/json/close/${ongletId}`);
 liaison.close();

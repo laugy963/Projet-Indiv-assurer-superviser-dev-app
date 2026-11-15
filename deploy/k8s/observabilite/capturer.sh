@@ -19,6 +19,7 @@ source "$ICI/../../k3d/env.sh"
 
 NS=monitoring
 CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+# Ports locaux : les mêmes valeurs sont fixées dans capturer.mjs.
 PORT_GRAFANA=13000
 PORT_CHROME=9333
 TMP="$(mktemp -d)"
@@ -53,7 +54,6 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
-# 3. Les captures.
-GRAFANA_URL="http://127.0.0.1:$PORT_GRAFANA" CHROME_URL="http://127.0.0.1:$PORT_CHROME" \
-  GRAFANA_MOT_DE_PASSE="$(kubectl -n "$NS" get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d)" \
+# 3. Les captures. capturer.mjs se connecte aux deux mêmes adresses locales, fixées dans son code.
+GRAFANA_MOT_DE_PASSE="$(kubectl -n "$NS" get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d)" \
   node "$ICI/capturer.mjs" "$@"

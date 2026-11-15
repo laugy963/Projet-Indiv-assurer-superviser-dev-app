@@ -14,7 +14,7 @@ Exécution 3 du test de charge : 50 utilisateurs simultanés, puis 200, puis 50.
 | [I2 — temps de réponse d'une publication](charge-50-200-i2-temps-de-reponse.png) | Sous le seuil de 500 ms (trait rouge) à la charge nominale ; jusqu'à 2,5 s pendant la pointe ; un pic à 17 h 09, pendant le rétablissement |
 | [I4 — taux de requêtes réussies](charge-50-200-i4-requetes-reussies.png) | 100 % à la charge nominale et pendant la pointe ; un creux à 93,4 % vers 17 h 08, quand le nœud est déclaré indisponible ; le trait marque le seuil de 99 % |
 | [Pods prêts et pods demandés par le HPA](charge-50-200-pods-et-hpa.png) | Le HPA demande un troisième pod à 17 h 02 ; les pods ne sont prêts que vers 17 h 08 ; quatrième pod pour notifications à 17 h 09 ; retour à 2 pods à 17 h 15. Le creux des pods prêts vers 17 h 08 : le nœud déclaré indisponible |
-| [Processeur par pod](charge-50-200-processeur-par-pod.png) | Le trait rouge est la cible du HPA, 0,175 cœur. Pendant la pointe, les deux pods de départ de chaque service la dépassent ; les pods ajoutés prennent leur part ensuite |
+| [Processeur par pod](charge-50-200-processeur-par-pod.png) | Le trait rouge est la cible du HPA, 0,175 cœur. Pendant la pointe, les deux pods de départ de chaque service la dépassent, et ceux du service notifications approchent leur plafond de 0,5 cœur ; les pods ajoutés prennent leur part ensuite |
 | [File du broker](charge-50-200-file-du-broker.png) | 5 messages en attente au plus ; jusqu'à 24 en cours de traitement pendant la pointe ; un message en échec à partir de 17 h 07 |
 
 Les heures sont en heure locale. Le même relevé, en chiffres : [charge-50-200-supervision.csv](../../tests/resultats/charge-50-200-supervision.csv).
