@@ -178,7 +178,7 @@ Contrôles de sécurité du pipeline, rejoués sur le poste avant de pousser (`t
 
 | Contrôle | Résultat |
 |---|---|
-| Gitleaks, tout l'historique | 41 commits, aucun secret |
+| Gitleaks, tout l'historique | 45 commits, aucun secret |
 | Semgrep, manifestes et scripts compris | 266 règles, 220 fichiers, aucun constat |
 | Trivy, dépendances | Aucune vulnérabilité haute ou critique corrigeable ; la bibliothèque de métriques ajoutée n'en apporte aucune |
 | Trivy, manifestes Kubernetes (nouveau mode `manifestes`) | 3 constats hauts : PostgreSQL, RabbitMQ et Keycloak n'ont pas leur système de fichiers en lecture seule |
@@ -223,7 +223,7 @@ Chart Helm kube-prometheus-stack 93.3.0, celui du cours (fiche 0011), avec des v
 | kube-state-metrics | Expose l'état des objets Kubernetes : pods prêts, pods demandés par le HPA | 29 Mio |
 | Grafana 13.3.1 | Affiche le tableau de bord | 224 Mio |
 
-Total : 389 Mio. ServiceMonitor : objet de l'opérateur qui désigne des Services par leurs étiquettes ; Prometheus interroge alors chaque pod qui se trouve derrière. Un pod ajouté par le HPA est collecté sans aucun réglage (volet 8 de la vérification).
+Total : 389 Mio. ServiceMonitor : objet de l'opérateur qui désigne des Services par leurs étiquettes ; Prometheus interroge alors chaque pod qui se trouve derrière. Un nouveau pod est collecté sans aucun réglage : le volet 8 de la vérification le montre pour un pod de remplacement, le test de charge pour les pods ajoutés par le HPA.
 
 Retirés du chart, et pourquoi : Alertmanager et les règles d'alerte (aucune alerte dans le prototype), node-exporter (un pod privilégié de plus), la collecte de kubelet (des milliers de séries pour tous les conteneurs du nœud). Le processeur et la mémoire des deux services viennent de leur propre route `/metrics`.
 
@@ -401,7 +401,7 @@ Cinq défauts réels, révélés par la charge. Ils alimentent l'audit de l'éta
 | # | Défaut | Preuve | Piste |
 |---|---|---|---|
 | 1 | La mise à l'échelle arrive trop tard : sur un nœud saturé, un pod met 6 minutes à être prêt, plus que la durée de la pointe | Exécution 3 | Plusieurs nœuds ; migrations sorties du démarrage des pods ; réserve de pods avant un événement annoncé |
-| 2 | Le nombre de connexions à PostgreSQL n'est pas borné : 8 pods de 10 connexions, plus Keycloak, dépassent les 100 connexions de la base | Exécution 1 : « too many clients already » | Fixer la taille de chaque réserve de connexions pour que leur somme reste sous le maximum |
+| 2 | Le nombre de connexions à PostgreSQL n'est borné nulle part : en pointe, 8 pods de services (10 connexions chacun par défaut) et Keycloak ont épuisé les 100 connexions de la base | Exécution 1 : « too many clients already » | Fixer la taille de chaque réserve de connexions pour que leur somme reste sous le maximum |
 | 3 | Quand le nœud est déclaré indisponible, même une minute, le nom de la base disparaît du DNS : les services répondent 500 au lieu d'attendre et de réessayer | Exécution 3 : 84 erreurs en une minute | Plusieurs nœuds ; nouvel essai de connexion dans les services ; Service à adresse fixe pour la base |
 | 4 | Un événement en échec deux fois reste dans la file des messages en échec : la notification n'est jamais créée | Exécution 3 : un message dans la file | Procédure de reprise de cette file |
 | 5 | Les journaux d'un pod retiré par le HPA sont perdus : une partie des erreurs n'a pas pu être lue | Exécution 3 | Journaux centralisés (limite déjà notée dans l'architecture) |
@@ -412,8 +412,8 @@ Le document de l'étape 5 listait ce qui restait à prouver (paragraphe 8).
 
 | Point clé | Ce que l'étape 7 prouve | Reste à prouver |
 |---|---|---|
-| Communication entre services | Plusieurs pods du service notifications consomment la même file : chaque message est traité une fois. Aucun flux réseau direct entre les deux services : la NetworkPolicy le refuse | — |
-| Sécurité | HTTPS de bout en bout jusqu'au point d'entrée, certificats émis par cert-manager ; flux réseau limités ; conteneurs non root, en lecture seule, sans jeton de l'API ; Secrets hors du dépôt ; Keycloak en mode production | Certificat d'une autorité publique ; trafic interne chiffré |
+| Communication entre services | Jusqu'à 4 pods du service notifications consomment la même file : les notifications arrivent, la file ne s'allonge pas. Aucun flux réseau direct entre les deux services : la NetworkPolicy le refuse | — |
+| Sécurité | HTTPS de bout en bout jusqu'au point d'entrée, certificats émis par cert-manager ; flux réseau limités ; conteneurs des deux services non root, en lecture seule, sans jeton de l'API ; Secrets hors du dépôt ; Keycloak en mode production | Certificat d'une autorité publique ; trafic interne chiffré |
 | Hébergement, orchestration | Déploiement Kubernetes rejouable ; sondes ; ressources ; mise à jour progressive et perte d'un pod sans erreur ; mise à l'échelle automatique sous charge | Environnement distant en Europe ; plusieurs nœuds |
 | Observabilité | Métriques collectées en continu, tableau de bord des indicateurs I2 et I4 | Alertes ; journaux centralisés |
 
