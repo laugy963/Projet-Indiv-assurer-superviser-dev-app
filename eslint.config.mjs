@@ -15,6 +15,11 @@ export default tseslint.config(
     languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
   },
   {
+    // Scénario de charge : il est exécuté par k6, pas par Node.js. k6 lui fournit ses réglages dans __ENV.
+    files: ['tests/charge/**/*.js'],
+    languageOptions: { sourceType: 'module', globals: { __ENV: 'readonly' } },
+  },
+  {
     // Fichiers de configuration en CommonJS.
     files: ['**/*.cjs'],
     languageOptions: { globals: { module: 'writable', require: 'readonly', __dirname: 'readonly' } },
