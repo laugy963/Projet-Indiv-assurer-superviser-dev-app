@@ -5,13 +5,13 @@
 - Référence : [processus de développement, paragraphe 4](02-processus-developpement.md#4-processus-cicd) et [schéma du pipeline](schemas/pipeline-ci-cd.md)
 - Fichiers : [pipeline.yml](../.github/workflows/pipeline.yml), [scan-planifie.yml](../.github/workflows/scan-planifie.yml), [analyses.sh](../tests/securite/analyses.sh), [sonar-project.properties](../sonar-project.properties), [.trivyignore](../.trivyignore)
 - Décisions prises à cette étape : fiches [0015](adr/0015-images-multi-architectures.md) et [0016](adr/0016-outils-du-pipeline-figes.md)
-- Preuve : [pull request n° 1](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/1) et ses exécutions (paragraphe 5)
+- Preuve : [pull request n° 1](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/1), fusionnée le 14 novembre 2026, et les exécutions du paragraphe 5
 
 ## 1. Objet
 
 Ce document décrit le pipeline réalisé : ce qu'il exécute, ce qu'il a mesuré, ce qu'il a bloqué, et ce qui reste hors de cette étape. Chaque chiffre vient d'une exécution réelle du 14 novembre 2026, sur les exécuteurs de GitHub (exécuteur : machine jetable qui exécute un job).
 
-Résultat : à la quatrième exécution, les 10 jobs du pipeline réussissent. Trois types de tests y sont joués, 243 tests en tout. Les trois premières exécutions ont échoué, chaque fois sur un défaut réel, corrigé dans la même pull request.
+Résultat : à la quatrième exécution, les 10 jobs du pipeline réussissent. Trois types de tests y sont joués, 243 tests en tout. Les trois premières exécutions ont échoué, chaque fois sur un défaut réel, corrigé dans la même pull request. Le prototype et le pipeline sont entrés dans `main` par cette pull request ; le pipeline a réussi sur `main`, qui est depuis protégée.
 
 ## 2. Ce qui est livré
 
@@ -32,7 +32,7 @@ Modifications du prototype rendues nécessaires par le pipeline :
 |---|---|
 | `services/Dockerfile` | `npm` retiré de l'image livrée ; installation des dépendances sans scripts |
 | Configurations Jest | Rapport de couverture aux chemins relatifs à la racine ; seuil de 80 % sur le socle |
-| `tests/environnement/` | L'environnement d'acceptation accepte des images tirées d'un registre |
+| `tests/environnement/` | L'environnement d'acceptation accepte des images tirées d'un registre ; la sonde de santé de RabbitMQ tourne sous le compte du serveur (paragraphe 10, difficulté 7) |
 | `package.json` | `npm run lint` échoue au premier avertissement |
 
 ## 3. Le pipeline réalisé
@@ -66,6 +66,16 @@ Durées de l'exécution n° 43589500284, la première entièrement réussie.
 | 3 | `acceptation` | Jest, Supertest ; Keycloak 26.8.2 | 12 tests sur l'image construite ; calcul de I1 | Oui : un test en échec, ou I1 < 100 % | Rapport de tests | I1 | 1 min 56 s |
 
 Durée totale : 11 min 44 s. Les six premiers contrôles rendent leur verdict en moins d'une minute ; le temps 1 est complet après 2 min 38 s.
+
+La construction des images fait l'essentiel de la durée, et elle dépend du cache :
+
+| Situation | `build-image` | Exécution complète |
+|---|---|---|
+| Le Dockerfile ou le code a changé (exécution 4) | 6 min 28 s | 11 min 44 s |
+| Seule la documentation a changé (exécution 5) | 50 s | 5 min 57 s |
+| Première exécution sur `main` (exécution 6) | 6 min 39 s | 12 min 10 s |
+
+GitHub ne laisse pas `main` lire le cache d'une branche de pull request : la première construction sur `main` repart de zéro. Les pull requests suivantes pourront, elles, lire le cache de `main`.
 
 ### 3.3 Enchaînement
 
@@ -112,8 +122,13 @@ Précisions :
 | 2 | [43587673488](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43587673488) | `bc77520` | 2 min 26 s | Échec de `qualite` | Le quality gate échoue sur trois conditions : couverture 53,3 %, note de fiabilité D, note de sécurité C. 18 constats |
 | 3 | [43588700036](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43588700036) | `fd2d7c2` | 8 min 33 s | Échec de `scan-image` | Quality gate réussi. Images construites. Trivy bloque les 4 variantes : 6 vulnérabilités hautes chacune. `acceptation` est sauté : l'image vulnérable ne va pas plus loin |
 | 4 | [43589500284](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43589500284) | `aeb05f1` | 11 min 44 s | Réussite | Les 10 jobs réussis, I1 = 100 % |
+| 5 | [43592050413](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43592050413) | `d4f50d1` | 5 min 57 s | Réussite | Le commit de documentation est contrôlé comme le code ; le cache ramène la construction à 50 s |
+| 6 | [43592520552](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43592520552) | `f869177`, sur `main` | 12 min 10 s | Réussite | Déclenchée par la fusion. Quality gate de `main` réussi ; images de `main` publiées |
+| — | [43592536101](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43592536101) | `f869177`, sur `main` | 1 min 09 s | Réussite | Scan planifié, lancé à la main : dépendances et images reconstruites sans vulnérabilité haute ni critique |
 
 Sur la pull request, 11 contrôles sont verts : les 10 jobs, et le contrôle que SonarQube Cloud pose lui-même.
+
+État de `main` après la fusion, mesuré par SonarQube Cloud : 3 822 lignes de code, 0 bug, 0 vulnérabilité, 0 défaut de maintenabilité, ratio de dette technique 0,0 %, couverture 92,5 %, duplication 0,8 %.
 
 Conservation : GitHub garde les journaux et les artefacts 90 jours, soit jusqu'au 12 février 2027 pour ces exécutions. Des captures d'écran sont à faire avant cette date ; le pipeline produira de nouvelles exécutions à chaque étape suivante.
 
@@ -168,6 +183,7 @@ Tout le reste du schéma est réalisé tel quel : les deux déclencheurs du pipe
 | Scripts d'installation | `npm ci --ignore-scripts` : une dépendance compromise ne peut pas exécuter de code à son installation |
 | Données extérieures | Aucun titre de pull request ni nom de branche n'est recopié dans une commande |
 | Validation avant de pousser | Les workflows passent par actionlint (outil qui vérifie la syntaxe des workflows) et par les règles « GitHub Actions » de Semgrep |
+| Branche `main` protégée | Depuis le 14 novembre 2026 (paragraphe 12) : personne ne modifie le pipeline, ni le code, sans passer par les contrôles |
 
 ## 9. Reproduire
 
@@ -193,7 +209,7 @@ Monter la version d'un outil :
 
 ## 10. Difficultés rencontrées
 
-Sept difficultés réelles. Six sont résolues ; la septième ne s'est pas reproduite.
+Sept difficultés réelles, toutes résolues.
 
 | # | Symptôme | Cause | Solution |
 |---|---|---|---|
@@ -203,9 +219,9 @@ Sept difficultés réelles. Six sont résolues ; la septième ne s'est pas repro
 | 4 | Quality gate en échec : notes de sécurité C et de fiabilité D | 12 constats réels (paragraphe 6) | Corrigés dans la même pull request |
 | 5 | `scan-image` bloque les 4 variantes | L'image de base `node:26.13.1-alpine` embarque `npm`, dont deux bibliothèques sont vulnérables | `npm` retiré de l'image livrée : le service ne s'en sert pas |
 | 6 | Le défaut volontaire laisse le job `lint` vert | ESLint classe les règles de son extension de sécurité en avertissements : code de sortie 0 | `--max-warnings 0` |
-| 7 | Sur le poste, RabbitMQ s'arrête au démarrage (code 1), une fois | Non établie : le script d'arrêt avait déjà détruit le conteneur et ses journaux | Relance : démarrage normal. À surveiller ; le pipeline n'a pas connu ce cas en quatre exécutions |
+| 7 | Sur le poste, RabbitMQ s'arrête parfois au démarrage : « Error when reading /var/lib/rabbitmq/.erlang.cookie: eacces ». Deux fois dans la journée, quand le poste était lent | Une course entre deux programmes. La sonde de santé, lancée en root 3,6 s après le démarrage, crée le fichier cookie avant le serveur ; le fichier appartient alors à root, et le serveur ne peut pas le lire. Établi sur le conteneur arrêté : fichier au nom de root, sonde jouée 4 s avant l'arrêt. La première fois, la cause n'avait pas pu être lue : le script d'arrêt avait détruit le conteneur et ses journaux | Sonde lancée sous le compte `rabbitmq` (`su-exec`) : 8 démarrages réussis sur 8, fichier au nom du serveur. Le pipeline n'a pas connu ce cas en six exécutions, mais rien ne l'en protégeait |
 
-Les difficultés 3 et 6 ont la même leçon que celles de l'étape 5 : un contrôle ne prouve rien tant que l'on n'a pas vérifié ce qu'il mesure.
+Les difficultés 3 et 6 ont la même leçon que celles de l'étape 5 : un contrôle ne prouve rien tant que l'on n'a pas vérifié ce qu'il mesure. La difficulté 7 en ajoute une : avant de détruire un environnement en panne, lire ses journaux.
 
 ## 11. Limites et ce qui n'a pas été exécuté
 
@@ -213,7 +229,9 @@ Les difficultés 3 et 6 ont la même leçon que celles de l'étape 5 : un contr�
 |---|---|---|
 | Déploiement, vérification après déploiement, validation humaine | Non réalisés | Étape 7 |
 | Test de charge, indicateur I2 | Non réalisés | Étape 7 |
-| Exécution sur `main`, scan planifié, protection de `main` | Après la fusion de la pull request n° 1 (paragraphe 12) | Fin de l'étape 6 |
+| Scan planifié | Exécuté une fois, à la main. Le premier déclenchement par l'horloge aura lieu la nuit du 14 au 15 novembre : à constater dans la liste des exécutions | À vérifier le 15 novembre |
+| Relecture par un pair | Aucune approbation n'est exigée : je suis seul sur le prototype (fiche 0006). Pour l'équipe, il suffit de passer le nombre d'approbations exigées de 0 à 1 | Dès que l'équipe est constituée |
+| Coût d'une petite modification | Une correction de documentation traverse tout le pipeline : 6 à 12 minutes | Accepté : une seule règle pour tous les changements |
 | Variante arm64 des images | Construite et scannée par le pipeline, mais pas exécutée par lui : ses tests d'acceptation tournent sur amd64. Exécutée sur le poste le 14 novembre : images tirées de ghcr.io, architecture arm64 constatée dans le conteneur, 12 tests d'acceptation réussis | Cluster : étape 7 |
 | Images tierces de l'environnement | Non scannées par le pipeline. Relevé du 14 novembre sur le poste : `postgres:18.7-alpine`, 1 vulnérabilité critique et 25 hautes, toutes dans son utilitaire de démarrage `gosu` ; Keycloak 26.8.2, 1 haute ; RabbitMQ 4.4.0, aucune haute ni critique | Étapes 7 et 8 |
 | Dépendances de développement | Trivy : 4 vulnérabilités moyennes, sous le seuil bloquant. `npm audit` en compte 28 (4 faibles, 24 modérées) : il compte chaque paquet qui dépend d'un paquet vulnérable. Aucune en production | Audit, étape 8 |
@@ -226,16 +244,40 @@ Les difficultés 3 et 6 ont la même leçon que celles de l'étape 5 : un contr�
 | Mise à jour des empreintes | Manuelle (paragraphe 9) | Dependabot : cible |
 | Durée | 11 min 44 s, dont 6 min 28 s de construction par émulation | Fiche 0015 : exécuteurs natifs si la durée gêne |
 | Journaux et artefacts | Conservés 90 jours par GitHub | Captures d'écran avant le 12 février 2027 |
+| Preuves locales du prototype (`tests/resultats/`) | Non renouvelées : elles datent du 13 novembre. Rejouées quatre fois le 14 novembre, avec succès, mais le poste était saturé lors des deux derniers rejeux (charge moyenne de 13 à 15 pour 8 cœurs) : CA-11 mesuré à 687 puis 751 ms, contre 43 à 79 ms d'ordinaire. La mesure de référence du jour est celle du pipeline : 60 ms | À rejouer sur un poste au repos |
 
 ## 12. Après la fusion
 
-Ces trois points ne peuvent être exécutés qu'une fois le pipeline présent dans `main`. Ils sont complétés par une seconde pull request.
+Trois points ne pouvaient être exécutés qu'une fois le pipeline présent dans `main`. Ils l'ont été le 14 novembre 2026.
 
-| Point | Pourquoi après la fusion | État |
+| Point | Réalisation | Preuve |
 |---|---|---|
-| Exécution du pipeline sur `main` | Elle est déclenchée par la fusion elle-même | À faire |
-| Exécution du scan planifié | GitHub ne lance un workflow planifié ou manuel que s'il est dans la branche par défaut | À faire |
-| Protection de `main` | Les contrôles à exiger doivent d'abord exister dans `main` (fiche 0006) | À faire |
+| Fusion | Pull request n° 1 fusionnée par un commit de fusion, pas par un « squash » : les commits « rouge » puis « vert » de l'étape 5 sont dans `main` | Commit `f869177` |
+| Pipeline sur `main` | Déclenché par la fusion : 10 jobs réussis | Exécution 6 |
+| Scan planifié | Lancé à la main : réussi. GitHub ne lance un workflow planifié ou manuel que s'il est dans la branche par défaut | Exécution 43592536101 |
+| Protection de `main` | Activée, puis éprouvée par un push direct | Ci-dessous |
+
+Réglages de la protection, conformes à la fiche 0006 :
+
+| Règle | Valeur |
+|---|---|
+| Pull request obligatoire | Oui |
+| Contrôles exigés avant la fusion | Les 10 jobs du pipeline |
+| Branche à jour avec `main` avant la fusion | Oui |
+| Approbations exigées | 0 : seul sur le prototype, je ne peux pas approuver mes propres pull requests |
+| S'applique à l'administrateur du dépôt | Oui |
+| Push forcé, suppression de la branche | Interdits |
+
+Épreuve : un commit vide poussé directement sur `main` est refusé par GitHub.
+
+```
+remote: error: GH006: Protected branch update failed for refs/heads/main.
+remote: - Changes must be made through a pull request.
+remote: - 10 of 10 required status checks are expected.
+ ! [remote rejected] main -> main (protected branch hook declined)
+```
+
+Ce document a lui-même été complété par une seconde pull request : c'est désormais le seul chemin vers `main`.
 
 ## 13. Suite
 
