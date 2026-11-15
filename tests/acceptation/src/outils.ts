@@ -98,9 +98,16 @@ export async function attendreNotification(
   }
 }
 
+/**
+ * Le service notifications répond-il ? Vu de l'extérieur, comme le reste de ces tests :
+ * en marche, une route de l'API refuse un appel sans jeton (401). Arrêté, la connexion échoue
+ * (Docker Compose) ou le point d'entrée répond 503 (cluster). La route /sante ne convient pas :
+ * interne, elle n'est pas exposée par l'Ingress.
+ */
 async function serviceNotificationsRepond(): Promise<boolean> {
   try {
-    return (await fetch(`${URL_NOTIFICATIONS}/sante`, { signal: AbortSignal.timeout(1000) })).ok;
+    const reponse = await fetch(`${URL_NOTIFICATIONS}/api/notifications`, { signal: AbortSignal.timeout(1000) });
+    return reponse.status === 401;
   } catch {
     return false;
   }
