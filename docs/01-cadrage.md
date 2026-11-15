@@ -45,6 +45,7 @@ Hors périmètre, cité pour mémoire : vente en ligne et paiement, abonnement e
 | 14 | Destinataire du jeton | Audience `api-epouvante` vérifiée dans chaque service | Acceptée | [0014](adr/0014-audience-du-jeton.md) |
 | 15 | Images multi-architectures | arm64 et amd64, par émulation QEMU dans un seul job | Acceptée | [0015](adr/0015-images-multi-architectures.md) |
 | 16 | Outils du pipeline | Actions et analyseurs désignés par leur empreinte ; jeton à droits minimaux | Acceptée | [0016](adr/0016-outils-du-pipeline-figes.md) |
+| 17 | Manifestes de déploiement | Fichiers YAML assemblés par Kustomize, une variante par environnement | Acceptée | [0017](adr/0017-manifestes-et-kustomize.md) |
 
 Organisation du code : un seul dépôt pour les deux services, les manifestes et la documentation. Un prototype tenu par une seule personne y gagne un pipeline unique et des modifications cohérentes entre services. L'alternative, un dépôt par service, se justifiera quand plusieurs équipes livreront à des rythmes différents.
 

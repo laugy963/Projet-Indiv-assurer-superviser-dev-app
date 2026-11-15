@@ -1,7 +1,7 @@
 # Étape 6 — Pipeline CI/CD
 
 - Date : 14 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 15 novembre 2026
 - Référence : [processus de développement, paragraphe 4](02-processus-developpement.md#4-processus-cicd) et [schéma du pipeline](schemas/pipeline-ci-cd.md)
 - Fichiers : [pipeline.yml](../.github/workflows/pipeline.yml), [scan-planifie.yml](../.github/workflows/scan-planifie.yml), [analyses.sh](../tests/securite/analyses.sh), [sonar-project.properties](../sonar-project.properties), [.trivyignore](../.trivyignore)
 - Décisions prises à cette étape : fiches [0015](adr/0015-images-multi-architectures.md) et [0016](adr/0016-outils-du-pipeline-figes.md)
