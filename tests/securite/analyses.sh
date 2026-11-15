@@ -4,6 +4,7 @@
 #   tests/securite/analyses.sh sast                           Semgrep : motifs de code dangereux
 #   tests/securite/analyses.sh dependances                    Trivy, mode fichiers : vulnérabilités des dépendances
 #   tests/securite/analyses.sh image <image> [plateforme]     Trivy, mode image : tout le contenu d'une image
+#   tests/securite/analyses.sh manifestes                     Trivy, mode configuration : manifestes Kubernetes (poste seulement)
 # Le poste et le pipeline lancent la même commande : même outil, même version, mêmes règles.
 # Seul prérequis : Docker. Chaque outil tourne dans son conteneur officiel, désigné par son empreinte (fiche 0016).
 # Code de sortie : 0 si rien n'est à signaler, différent de 0 sinon. Rapports dans reports/securite/ (non versionné).
@@ -76,7 +77,16 @@ case "${1:-}" in
     echo "Image $IMAGE${PLATEFORME:+ ($PLATEFORME)} : aucune vulnérabilité haute ou critique qui ait un correctif"
     ;;
 
+  manifestes)
+    # Mauvaises configurations des manifestes Kubernetes (conteneur root, système de fichiers inscriptible, etc.).
+    # Ce contrôle était reporté tant que les manifestes n'existaient pas (processus de développement, paragraphe 4.7).
+    # Il est en mode « informer » : lancé sur le poste, pas encore dans le pipeline. Ses constats vont à l'audit.
+    PERIMETRE=(config --skip-dirs sandbox deploy/k8s)
+    trivy "$TRIVY" "${PERIMETRE[@]}" --quiet --format json --output /rapports/manifestes.json
+    trivy "$TRIVY" "${PERIMETRE[@]}" --quiet --severity HIGH,CRITICAL --exit-code 1
+    ;;
+
   *)
-    sed -n '2,9p' "$0"; exit 2
+    sed -n '2,10p' "$0"; exit 2
     ;;
 esac
