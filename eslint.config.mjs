@@ -10,9 +10,24 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   security.configs.recommended,
   {
-    // Scripts Node.js en modules ES (tests/indicateur-i1.mjs).
+    // Scripts Node.js en modules ES (tests/indicateur-i1.mjs, deploy/k8s/observabilite/capturer.mjs).
     files: ['**/*.mjs'],
-    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        // deploy/k8s/observabilite/capturer.mjs : interfaces fournies par Node.js sans import.
+        Buffer: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+  },
+  {
+    // Scénario de charge : il est exécuté par k6, pas par Node.js. k6 lui fournit ses réglages dans __ENV.
+    files: ['tests/charge/**/*.js'],
+    languageOptions: { sourceType: 'module', globals: { __ENV: 'readonly' } },
   },
   {
     // Fichiers de configuration en CommonJS.

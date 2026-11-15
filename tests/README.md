@@ -1,13 +1,13 @@
 # Tests du prototype
 
-Trois niveaux de tests, distingués par ce qui est lancé (fiche 0005), plus le test de charge de l'étape 7.
+Trois niveaux de tests, distingués par ce qui est lancé (fiche 0005), plus le test de charge, joué sur le prototype déployé.
 
 | Niveau | Emplacement | Ce qui est lancé | Dépendances |
 |---|---|---|---|
 | Unitaire | `libs/socle/src/`, `services/*/src/` (`*.spec.ts`) | Une règle, un cas d'usage, la garde | Doubles de test |
 | Intégration | `services/*/test/integration/` | Un service complet, appelé en HTTP | PostgreSQL et RabbitMQ réels ; jetons d'un émetteur de test |
 | Acceptation | `tests/acceptation/` | Les deux services en conteneurs | PostgreSQL, RabbitMQ et Keycloak réels |
-| Charge | `tests/charge/` | — | Étape 7 |
+| Charge | `tests/charge/` | Le prototype déployé sur le cluster, appelé par k6 à travers l'Ingress, en HTTPS | Tout le cluster ; jetons de Keycloak |
 
 Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant du critère qu'il prouve (`CA-01` à `CA-19`).
 
@@ -22,7 +22,11 @@ Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant d
 | `indicateur-i1.mjs` | Calcule l'indicateur I1 à partir des rapports de Jest |
 | `securite/analyses.sh` | Contrôles de sécurité du pipeline, rejouables sur le poste : Gitleaks, Semgrep, Trivy (fiche 0016) |
 | `rejouer.sh` | Rejoue tous les tests et enregistre leur sortie brute |
-| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve |
+| `charge/scenario.js` | Scénario k6 : paliers de charge, seuils des indicateurs I2 et I4, mesure du délai de notification |
+| `charge/lancer.sh` | Lance k6 en conteneur, relève la mise à l'échelle toutes les 10 secondes, écrit la preuve |
+| `charge/comptes.sh` | Crée dans Keycloak un compte par utilisateur virtuel |
+| `charge/exporter-supervision.sh` | Exporte de Prometheus ce que la supervision a vu pendant un test : Prometheus ne garde que 24 heures |
+| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) |
 
 ## Rejouer
 
@@ -50,6 +54,24 @@ npm run env:acceptation && npm run test:acceptation
 | Les tests d'acceptation visent un autre environnement en changeant `URL_ANNONCES`, `URL_NOTIFICATIONS` et `URL_JETONS` | Les mêmes scénarios seront rejoués après un déploiement |
 | Le test CA-15 arrête puis relance le conteneur du service notifications | Il prouve que la publication ne dépend pas de ce service, et qu'aucun message n'est perdu |
 | L'environnement d'acceptation occupe environ 920 Mio | L'arrêter après usage |
+
+## Test de charge
+
+Il vise le prototype déployé sur le cluster local (`deploy/k8s/README.md`). Seul prérequis : Docker. k6 2.4.0 est lancé en conteneur, désigné par l'empreinte de son image. Commandes exécutées avec succès le 15 novembre 2026.
+
+```bash
+tests/charge/lancer.sh essai     # 80 secondes, 5 puis 10 utilisateurs : valide le scénario, ne mesure rien
+tests/charge/lancer.sh           # test complet : 13 minutes, 50 puis 200 utilisateurs, puis le retour au minimum de pods
+```
+
+| Point | Explication |
+|---|---|
+| Paliers | Montée, charge nominale (3 min), montée, pointe (4 min), descente, retour à la charge nominale (3 min) |
+| Un utilisateur virtuel | Un compte Keycloak à lui. Il consulte les annonces, consulte ses notifications et, une fois sur cinq, publie ; une action toutes les 1 à 3 secondes |
+| Seuils bloquants | I2 : 95 % des publications en moins de 500 ms à la charge nominale. I4 : au moins 99 % de requêtes réussies, à la charge nominale et en pointe. Notification visible en moins de 5 secondes |
+| Code de sortie | Celui de k6 : non nul si un seuil n'est pas tenu |
+| Sorties | `charge/resultats/<date>/`, brutes et non versionnées ; le test complet écrit sa preuve dans `resultats/charge-<nominale>-<pointe>.txt` |
+| Relevé de la mise à l'échelle | Lu dans l'API de Kubernetes et dans Prometheus. Il n'interroge pas le broker : la commande `rabbitmqctl`, lancée toutes les 10 secondes, faussait la mesure |
 
 ## Contrôles de sécurité
 

@@ -1,0 +1,11 @@
+# Espace de noms du prototype : les deux services et leurs dépendances.
+# Les deux étiquettes activent le contrôle « Pod Security Admission » de Kubernetes au niveau « restricted » :
+# un pod qui tournerait en root, garderait des capacités Linux ou pourrait élever ses privilèges est refusé
+# à la création. La règle ne dépend donc pas de la vigilance de celui qui écrit un manifeste.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: epouvante
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted

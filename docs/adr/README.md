@@ -20,3 +20,4 @@ Une fiche par décision structurante : le contexte, la décision, les alternativ
 | [0014](0014-audience-du-jeton.md) | Vérification du destinataire du jeton (`aud`) | Acceptée |
 | [0015](0015-images-multi-architectures.md) | Images pour arm64 et amd64 : émulation QEMU dans un seul job | Acceptée |
 | [0016](0016-outils-du-pipeline-figes.md) | Outils du pipeline figés par leur empreinte ; jeton à droits minimaux | Acceptée |
+| [0017](0017-manifestes-et-kustomize.md) | Déploiement : manifestes YAML et Kustomize | Acceptée |

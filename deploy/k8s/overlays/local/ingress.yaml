@@ -1,0 +1,56 @@
+# Point d'entrée unique du cluster (fiche 0010) : tout le trafic externe passe par Traefik, en HTTPS.
+# Seules les routes /api et le serveur d'identité sont exposés. Les routes internes des services
+# (/sante, /sante/pret, /metrics) ne correspondent à aucune règle : de l'extérieur, elles répondent 404.
+#
+# Variante locale : noms en « .localhost », que le poste résout seul vers 127.0.0.1, et certificats
+# émis par l'autorité de certification locale. Une annotation suffit : cert-manager crée le Secret du certificat.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  annotations:
+    cert-manager.io/cluster-issuer: ac-locale
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [api.epouvante.localhost]
+      secretName: api-tls
+  rules:
+    - host: api.epouvante.localhost
+      http:
+        paths:
+          # Routage par chemin vers les deux services : le client ne voit qu'une API.
+          - path: /api/annonces
+            pathType: Prefix
+            backend:
+              service: {name: annonces, port: {name: http}}
+          - path: /api/centres-interet
+            pathType: Prefix
+            backend:
+              service: {name: notifications, port: {name: http}}
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service: {name: notifications, port: {name: http}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: identite
+  annotations:
+    cert-manager.io/cluster-issuer: ac-locale
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [auth.epouvante.localhost]
+      secretName: identite-tls
+  rules:
+    - host: auth.epouvante.localhost
+      http:
+        paths:
+          # Seul /realms est exposé : il porte la délivrance des jetons et les clés publiques.
+          # La console d'administration (/admin) et les sondes de Keycloak restent internes au cluster.
+          - path: /realms
+            pathType: Prefix
+            backend:
+              service: {name: keycloak, port: {name: http}}

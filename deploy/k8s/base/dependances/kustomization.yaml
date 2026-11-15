@@ -1,0 +1,26 @@
+# Dépendances des deux services : base de données, broker, serveur d'identité, et les règles réseau.
+# Elles sont appliquées avant les services (deployer.sh, phase 1), qui en ont besoin pour démarrer.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - espace-de-noms.yaml
+  - reseau.yaml
+  - postgresql.yaml
+  - rabbitmq.yaml
+  - keycloak.yaml
+
+# Étiquette posée sur chaque objet de ce dossier : deployer.sh s'en sert pour n'appliquer que cette phase.
+labels:
+  - pairs:
+      epouvante/phase: dependances
+
+configMapGenerator:
+  # Le script d'initialisation de PostgreSQL devient un ConfigMap, monté dans le pod.
+  - name: postgresql-initialisation
+    files:
+      - init.sh=postgresql-initialisation.sh
+  # Adresse publique de Keycloak : elle dépend de l'environnement, chaque variante la remplace.
+  - name: identite-config
+    literals:
+      - KC_HOSTNAME=https://a-definir-par-la-variante

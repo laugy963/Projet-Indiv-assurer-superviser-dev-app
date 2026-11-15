@@ -19,8 +19,8 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 3 | Exigences et architecture | Terminée |
 | 4 | Bac à sable | Terminée |
 | 5 | Développement du prototype | Terminée |
-| 6 | Pipeline CI/CD | En attente de validation |
-| 7 | Déploiement, observabilité, charge | À faire |
+| 6 | Pipeline CI/CD | Terminée |
+| 7 | Déploiement, observabilité, charge | En attente de validation |
 | 8 | Audit et remédiation | À faire |
 | 9 | Soutenance | À faire |
 
@@ -38,13 +38,13 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 ├── deploy/
 │   ├── k3d/               configuration du cluster local (étape 4)
 │   ├── keycloak/          royaume Keycloak versionné, sans compte ni mot de passe (étape 5)
-│   └── k8s/               manifestes Kubernetes (étape 7)
+│   └── k8s/               manifestes Kubernetes, scripts de déploiement et de vérification, supervision (étape 7)
 ├── tests/
 │   ├── environnement/     environnement de test Docker Compose (étape 5)
 │   ├── acceptation/       tests d'acceptation du backlog (étape 5)
-│   ├── resultats/         sortie brute de la dernière exécution des tests (étape 5)
+│   ├── resultats/         sortie brute de la dernière exécution des tests (étapes 5 et 7)
 │   ├── securite/          contrôles de sécurité du pipeline, rejouables sur le poste (étape 6)
-│   └── charge/            scénarios de test de charge (étape 7)
+│   └── charge/            scénario de test de charge k6 et son lanceur (étape 7)
 ├── sandbox/               code et configuration des expérimentations (étape 4)
 └── docs/
     ├── 01-cadrage.md      périmètre, décisions, risques, questions ouvertes
@@ -54,10 +54,12 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── 03-architecture.md              composants, flux, données, sécurité, limites
     ├── 05-developpement-poc.md         prototype réalisé, critères prouvés, difficultés, limites
     ├── 06-pipeline-ci-cd.md            pipeline réalisé, exécutions de référence, écarts, limites
+    ├── 07-deploiement-observabilite-charge.md   déploiement Kubernetes, supervision, test de charge, limites
     ├── retroplanning.md   calendrier jusqu'à la soutenance
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
     ├── schemas/           schémas draw.io : source .drawio, export .png, page .md
+    ├── captures/          captures du tableau de bord Grafana pendant le test de charge (étape 7)
     ├── experimentations/  synthèses des protocoles d'expérimentation
     └── soutenance/        support et script de démonstration
 ```
@@ -72,9 +74,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 6. [Bac à sable : synthèse des expérimentations](docs/experimentations/README.md)
 7. [Développement du prototype](docs/05-developpement-poc.md), avec les [tests et leurs preuves](tests/README.md)
 8. [Pipeline CI/CD](docs/06-pipeline-ci-cd.md), avec ses fichiers dans [.github/workflows/](.github/workflows/)
-9. [Fiches de décision](docs/adr/README.md)
-10. [Rétroplanning](docs/retroplanning.md)
-11. [Journal de bord](docs/journal.md)
+9. [Déploiement, observabilité, charge](docs/07-deploiement-observabilite-charge.md), avec les [manifestes et scripts](deploy/k8s/README.md)
+10. [Fiches de décision](docs/adr/README.md)
+11. [Rétroplanning](docs/retroplanning.md)
+12. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 

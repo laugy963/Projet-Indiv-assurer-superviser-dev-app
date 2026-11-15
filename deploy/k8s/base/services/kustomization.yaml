@@ -1,0 +1,34 @@
+# Les deux services du prototype. Appliqués après les dépendances (deployer.sh, phase 2).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - annonces.yaml
+  - notifications.yaml
+
+configMapGenerator:
+  # Réglages communs aux deux services : rien de sensible ici, les mots de passe sont dans des Secrets.
+  # Chaque ConfigMap reçoit un suffixe calculé sur son contenu : si un réglage change,
+  # le nom change, et Kubernetes remplace les pods un par un.
+  - name: services-config
+    literals:
+      - PORT=3000
+      - BDD_HOTE=postgresql
+      - BDD_PORT=5432
+      - AMQP_HOTE=rabbitmq
+      - AMQP_PORT=5672
+      # Deux réglages distincts (règle du bac à sable) : l'émetteur écrit dans les jetons, qui est l'adresse
+      # publique de Keycloak et dépend de l'environnement ; et l'adresse interne où lire ses clés publiques.
+      - OIDC_EMETTEUR=https://a-definir-par-la-variante/realms/epouvante
+      - OIDC_URL_CLES=http://keycloak:8080/realms/epouvante/protocol/openid-connect/certs
+      - OIDC_AUDIENCE=api-epouvante
+  - name: annonces-config
+    literals:
+      - BDD_NOM=annonces
+      - BDD_UTILISATEUR=annonces
+      - AMQP_UTILISATEUR=annonces
+  - name: notifications-config
+    literals:
+      - BDD_NOM=notifications
+      - BDD_UTILISATEUR=notifications
+      - AMQP_UTILISATEUR=notifications

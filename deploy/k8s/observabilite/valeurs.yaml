@@ -1,0 +1,127 @@
+# Valeurs du chart Helm kube-prometheus-stack (fiche 0011), version 93.3.0, pour le cluster local.
+# Le chart installe par défaut une supervision complète de Kubernetes. Sur un poste de 8 Go, on ne garde que
+# ce qui sert le prototype : Prometheus, son opérateur, Grafana et kube-state-metrics.
+# Chaque composant retiré est une limite assumée, écrite dans docs/07-deploiement-observabilite-charge.md.
+
+# Noms courts et stables pour les objets créés : supervision-prometheus, supervision-operator, supervision-grafana.
+fullnameOverride: supervision
+
+# --- Retirés ---
+alertmanager:
+  enabled: false           # aucune alerte dans le prototype : les alertes sont en cible
+defaultRules:
+  create: false            # règles d'alerte et de précalcul du chart : sans Alertmanager, elles ne servent pas
+nodeExporter:
+  enabled: false           # métriques de la machine : un pod privilégié de plus, hors du besoin
+kubelet:
+  enabled: false           # métriques de tous les conteneurs du nœud : des milliers de séries.
+                           # Le processeur et la mémoire des deux services viennent de leur propre route /metrics
+kubeApiServer:
+  enabled: false
+coreDns:
+  enabled: false
+# Dans k3s, ces composants ne sont pas des pods : il n'y a rien à collecter.
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+# --- Gardés ---
+# kube-state-metrics : l'état des objets Kubernetes. Il donne le nombre de pods prêts et ce que demande le HPA.
+kubeStateMetrics:
+  enabled: true
+
+prometheusOperator:
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {memory: 192Mi}
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s    # une mesure toutes les 15 secondes sur chaque pod
+    retention: 24h         # le prototype n'a pas besoin d'historique long ; pas de volume : tout est perdu au redémarrage
+    # Par défaut, Prometheus ne lit que les ServiceMonitor posés par ce chart.
+    # « false » : il lit aussi les nôtres (servicemonitors.yaml), dans l'espace de noms du prototype.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {memory: 640Mi}
+
+grafana:
+  # Sur le poste, Grafana est lancé à la demande : zéro pod par défaut. Le poste de 8 Go ne tient pas le prototype,
+  # la supervision complète et une charge en même temps (mesuré le 15 novembre 2026). Prometheus, lui, collecte
+  # en continu : ouvrir Grafana après un test montre toute la période. Pour l'ouvrir :
+  #   kubectl -n monitoring scale deploy supervision-grafana --replicas=1
+  replicas: 0
+  defaultDashboardsEnabled: false   # les tableaux de bord du chart décrivent le cluster, pas le prototype
+  admin:
+    existingSecret: grafana-admin   # créé par installer.sh, mot de passe tiré au hasard
+    userKey: admin-user
+    passwordKey: admin-password
+  resources:
+    requests: {cpu: 50m, memory: 192Mi}
+    # Plafond de processeur : au démarrage, Grafana charge une vingtaine d'extensions. Sans plafond, il a pris
+    # tous les cœurs du poste, et les sondes des autres pods ont dépassé leur délai (constaté le 15 novembre 2026).
+    limits: {cpu: "1", memory: 384Mi}
+  # Sonde « vivant » plus patiente que celle du chart (160 s) : sur le poste, le démarrage peut dépasser 3 minutes,
+  # et la sonde redémarrait Grafana avant qu'il ait fini, en boucle.
+  livenessProbe:
+    httpGet: {path: /api/health, port: 3000}
+    initialDelaySeconds: 120
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 30
+  # Grafana au plus juste. Par défaut, Grafana 13 charge une quinzaine d'extensions de sources de données,
+  # chacune dans son propre processus : sur le poste, la mémoire d'échange s'est remplie et les pods du prototype
+  # ont redémarré (constaté deux fois le 15 novembre 2026). Seule la source Prometheus sert ici.
+  grafana.ini:
+    plugins:
+      disable_plugins: cloudwatch,elasticsearch,grafana-postgresql-datasource,grafana-pyroscope-datasource,influxdb,jaeger,loki,mssql,mysql,opentsdb,stackdriver,tempo,zipkin,graphite,parca,grafana-azure-monitor-datasource,grafana-testdata-datasource
+      preinstall_disabled: true          # aucune extension téléchargée au démarrage
+    unified_alerting:
+      enabled: false                     # pas d'alerte dans le prototype
+    analytics:
+      reporting_enabled: false           # aucune statistique d'usage envoyée à l'éditeur
+      check_for_updates: false
+      check_for_plugin_updates: false
+    news:
+      news_feed_enabled: false
+  # Source de données et tableau de bord chargés au démarrage, depuis des fichiers.
+  # Le chart propose à la place deux conteneurs auxiliaires (« sidecars ») qui surveillent les ConfigMap :
+  # mesurés à 155 Mio à eux deux le 15 novembre 2026, presque autant que Grafana lui-même (170 Mio).
+  sidecar:
+    dashboards:
+      enabled: false
+    datasources:
+      enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus              # l'identifiant que désignent les panneaux du tableau de bord
+          access: proxy
+          url: http://supervision-prometheus.monitoring:9090
+          isDefault: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: epouvante
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: true
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/epouvante
+  # Le ConfigMap est créé par installer.sh à partir de tableau-de-bord.json, versionné.
+  dashboardsConfigMaps:
+    epouvante: tableau-de-bord-epouvante
+  # Grafana n'est pas exposé par l'Ingress : on y accède par « kubectl port-forward », comme en cours.

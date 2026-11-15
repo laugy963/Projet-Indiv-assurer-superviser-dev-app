@@ -1,0 +1,10 @@
+# Base : ce qui est identique dans tous les environnements.
+# Ce qui change d'un environnement à l'autre (noms d'hôte, émetteur de certificats, images) est dans overlays/.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: epouvante
+
+resources:
+  - dependances
+  - services

@@ -1,0 +1,290 @@
+=== Test de charge du prototype — du 2026-11-15 16:20:27 au 2026-11-15 16:34:03
+Outil : k6 2.4.0, en conteneur. Scénario : tests/charge/scenario.js. Charge nominale 50, pointe 200 utilisateurs simultanés.
+Cible : cluster local k3d, v1.35.5+k3s1, à travers l'Ingress en HTTPS.
+Images : epouvante/annonces:680e558857b9  epouvante/notifications:953d9fcd0264  
+Code de sortie de k6 : 99 (0 = tous les seuils sont tenus ; 99 = au moins un seuil n'est pas tenu)
+
+--- Avertissements de k6 pendant le test, regroupés par nature (nombre, puis message)
+  272 level=warning msg="Request Failed" error="Get \"\": EOF"
+   92 level=warning msg="Request Failed" error="Post \"\": EOF"
+   70 level=warning msg="Request Failed" error="Get \"\": read: connection reset by peer"
+   37 level=warning msg="Request Failed" error="Get \"\": tls: failed to verify certificate: x509: certificate is valid for <nom par défaut de Traefik>.d06487c265b8dc6c3988d190
+   27 level=warning msg="Request Failed" error="Post \"\": read: connection reset by peer"
+   25 level=warning msg="Request Failed" error="Post \"\": request timeout"
+   20 level=warning msg="Request Failed" error="Post \"\": tls: failed to verify certificate: x509: certificate is valid for <nom par défaut de Traefik>.d06487c265b8dc6c3988d19
+   14 level=warning msg="Request Failed" error="Post \"\": tls: failed to verify certificate: x509: certificate is valid for <nom par défaut de Traefik>.5664eb30dfade89acd909e1
+   13 level=warning msg="Request Failed" error="Get \"\": tls: failed to verify certificate: x509: certificate is valid for <nom par défaut de Traefik>.5664eb30dfade89acd909e15
+
+--- Résumé de k6
+  █ THRESHOLDS 
+
+    checks
+    ✗ 'rate>0.99' rate=10.45%
+
+    delai_notification{phase:nominale}
+    ✗ 'p(95)<5000' p(95)=27.93s
+
+    delai_notification{phase:pointe}
+    ✓ 'p(95)>=0' p(95)=0s
+
+    delai_notification{phase:retour}
+    ✓ 'p(95)>=0' p(95)=11.32s
+
+    http_req_duration{name:jeton}
+    ✓ 'p(95)>=0' p(95)=835.12ms
+
+    http_req_duration{name:lister,phase:nominale}
+    ✓ 'p(95)>=0' p(95)=17.27s
+
+    http_req_duration{name:lister,phase:pointe}
+    ✓ 'p(95)>=0' p(95)=3.21s
+
+    http_req_duration{name:notifications,phase:nominale}
+    ✓ 'p(95)>=0' p(95)=8.3s
+
+    http_req_duration{name:notifications,phase:pointe}
+    ✓ 'p(95)>=0' p(95)=3.06s
+
+    http_req_duration{name:publier,phase:nominale}
+    ✗ 'p(95)<500' p(95)=4.67s
+
+    http_req_duration{name:publier,phase:pointe}
+    ✓ 'p(95)>=0' p(95)=2.9s
+
+    http_req_duration{name:publier,phase:retour}
+    ✓ 'p(95)>=0' p(95)=14.08s
+
+    http_req_failed{phase:nominale}
+    ✗ 'rate<0.01' rate=50.06%
+
+    http_req_failed{phase:pointe}
+    ✗ 'rate<0.01' rate=90.94%
+
+    http_req_failed{phase:retour}
+    ✓ 'rate>=0' rate=0.20%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 45618  57.592311/s
+    checks_succeeded...: 10.45% 4769 out of 45618
+    checks_failed......: 89.54% 40849 out of 45618
+
+    ✗ jeton : 200
+      ↳  1% — ✓ 406 / ✗ 35228
+    ✗ centres d’intérêt : 200
+      ↳  4% — ✓ 50 / ✗ 1108
+    ✗ liste des annonces : 200
+      ↳  48% — ✓ 1959 / ✗ 2075
+    ✗ notifications : 200
+      ↳  49% — ✓ 1965 / ✗ 2037
+    ✗ publication : 201
+      ↳  49% — ✓ 389 / ✗ 401
+
+    CUSTOM
+    delai_notification........................: avg=5.03s    med=2.68s    p(90)=11.28s   p(95)=11.67s   p(99)=28.38s   max=34.81s   count=29   
+      { phase:nominale }......................: avg=11.22s   med=7.14s    p(90)=21.04s   p(95)=27.93s   p(99)=33.43s   max=34.81s   count=7    
+      { phase:pointe }........................: avg=0s       med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s       count=0    
+      { phase:retour }........................: avg=5.53s    med=4.81s    p(90)=11.25s   p(95)=11.32s   p(99)=11.38s   max=11.39s   count=11   
+    notifications_non_vues....................: 3      0.003787/s
+
+    HTTP
+    http_req_blocked..........................: avg=2.67ms   med=667ns    p(90)=1.83µs   p(95)=2.58µs   p(99)=12.96ms  max=8.77s    count=45891
+    http_req_connecting.......................: avg=202.31µs med=0s       p(90)=0s       p(95)=0s       p(99)=1.45ms   max=617.34ms count=45891
+    http_req_duration.........................: avg=731.61ms med=63.08ms  p(90)=1.26s    p(95)=2.6s     p(99)=12.09s   max=1m0s     count=45891
+      { expected_response:true }..............: avg=2.81s    med=1.01s    p(90)=6.55s    p(95)=11.18s   p(99)=35.53s   max=59.63s   count=9217 
+      { name:jeton }..........................: avg=427.92ms med=43.4ms   p(90)=403.42ms p(95)=835.12ms p(99)=4.28s    max=1m0s     count=35806
+      { name:lister,phase:nominale }..........: avg=2.05s    med=84.22ms  p(90)=4.28s    p(95)=17.27s   p(99)=32.25s   max=35.67s   count=1113 
+      { name:lister,phase:pointe }............: avg=1.28s    med=1.11s    p(90)=2.7s     p(95)=3.21s    p(99)=4.33s    max=5.7s     count=902  
+      { name:notifications,phase:nominale }...: avg=1.85s    med=153.48ms p(90)=6.17s    p(95)=8.3s     p(99)=24.84s   max=33.08s   count=1113 
+      { name:notifications,phase:pointe }.....: avg=1.32s    med=1.12s    p(90)=2.5s     p(95)=3.06s    p(99)=4.78s    max=6.85s    count=902  
+      { name:publier,phase:nominale }.........: avg=1.34s    med=41.36ms  p(90)=2.95s    p(95)=4.67s    p(99)=29.39s   max=37.09s   count=231  
+      { name:publier,phase:pointe }...........: avg=1.21s    med=1.08s    p(90)=2.57s    p(95)=2.9s     p(99)=3.98s    max=4.24s    count=159  
+      { name:publier,phase:retour }...........: avg=3.32s    med=1.55s    p(90)=7.79s    p(95)=14.08s   p(99)=21.21s   max=23.37s   count=173  
+    http_req_failed...........................: 79.91% 36674 out of 45891
+      { phase:nominale }......................: 50.06% 1567 out of 3130
+      { phase:pointe }........................: 90.94% 28308 out of 31128
+      { phase:retour }........................: 0.20%  4 out of 1921
+    http_req_receiving........................: avg=35.62ms  med=1.04ms   p(90)=50.29ms  p(95)=124.69ms p(99)=676.79ms max=9.41s    count=45891
+    http_req_sending..........................: avg=6.42ms   med=536.91µs p(90)=8.45ms   p(95)=22.5ms   p(99)=110.13ms max=4.33s    count=45891
+    http_req_tls_handshaking..................: avg=2.27ms   med=0s       p(90)=0s       p(95)=0s       p(99)=10.16ms  max=8.72s    count=45891
+    http_req_waiting..........................: avg=689.56ms med=51.02ms  p(90)=1.18s    p(95)=2.36s    p(99)=11.49s   max=1m0s     count=45891
+    http_reqs.................................: 45891  57.936971/s
+
+    EXECUTION
+    iteration_duration........................: avg=2.09s    med=1.08s    p(90)=3.14s    p(95)=6.12s    p(99)=25.39s   max=1m9s     count=39266
+    iterations................................: 39266  49.572969/s
+    vus.......................................: 1      min=1              max=201
+    vus_max...................................: 201    min=201            max=201
+
+    NETWORK
+    data_received.............................: 60 MB  76 kB/s
+    data_sent.................................: 9.0 MB 11 kB/s
+
+
+  █ SCENARIO: membres 
+
+    checks_total.......: 45445  57.3739/s
+    checks_succeeded...: 10.48% 4763 out of 45445
+    checks_failed......: 89.51% 40682 out of 45445
+
+    ✗ jeton : 200
+      ↳  1% — ✓ 400 / ✗ 35061
+    ✗ centres d’intérêt : 200
+      ↳  4% — ✓ 50 / ✗ 1108
+    ✗ liste des annonces : 200
+      ↳  48% — ✓ 1959 / ✗ 2075
+    ✗ notifications : 200
+      ↳  49% — ✓ 1965 / ✗ 2037
+    ✗ publication : 201
+      ↳  49% — ✓ 389 / ✗ 401
+
+    HTTP
+    http_req_blocked...........: avg=2.5ms    med=667ns    p(90)=1.83µs  p(95)=2.58µs   p(99)=13.06ms  max=5.75s    count=45446
+    http_req_connecting........: avg=203.66µs med=0s       p(90)=0s      p(95)=0s       p(99)=1.46ms   max=617.34ms count=45446
+    http_req_duration..........: avg=730.98ms med=63.32ms  p(90)=1.26s   p(95)=2.58s    p(99)=12.08s   max=1m0s     count=45446
+    http_req_failed............: 79.93% 36327 out of 45446
+    http_req_receiving.........: avg=35.71ms  med=1.04ms   p(90)=50.66ms p(95)=125.17ms p(99)=677.39ms max=9.41s    count=45446
+    http_req_sending...........: avg=6.44ms   med=538.18µs p(90)=8.49ms  p(95)=22.56ms  p(99)=110.16ms max=4.33s    count=45446
+    http_req_tls_handshaking...: avg=2.09ms   med=0s       p(90)=0s      p(95)=0s       p(99)=10.41ms  max=4.59s    count=45446
+    http_req_waiting...........: avg=688.81ms med=51.14ms  p(90)=1.18s   p(95)=2.35s    p(99)=11.48s   max=1m0s     count=45446
+    http_reqs..................: 45446  57.375162/s
+
+    EXECUTION
+    iteration_duration.........: avg=2.09s    med=1.08s    p(90)=3.11s   p(95)=6.09s    p(99)=25.26s   max=1m9s     count=39052
+    iterations.................: 39052  49.302795/s
+
+    NETWORK
+    data_received..............: 59 MB  74 kB/s
+    data_sent..................: 8.9 MB 11 kB/s
+
+
+  █ SCENARIO: observateur 
+
+    checks_total.......: 173    0.218411/s
+    checks_succeeded...: 3.46%  6 out of 173
+    checks_failed......: 96.53% 167 out of 173
+
+    ✗ jeton : 200
+      ↳  3% — ✓ 6 / ✗ 167
+
+    CUSTOM
+    delai_notification.........: avg=5.03s    med=2.68s    p(90)=11.28s  p(95)=11.67s  p(99)=28.38s   max=34.81s   count=29 
+    notifications_non_vues.....: 3      0.003787/s
+
+    HTTP
+    http_req_blocked...........: avg=20.11ms  med=708ns    p(90)=1.95µs  p(95)=2.96µs  p(99)=2.95ms   max=8.77s    count=445
+    http_req_connecting........: avg=63.9µs   med=0s       p(90)=0s      p(95)=0s      p(99)=869.62µs max=13.8ms   count=445
+    http_req_duration..........: avg=796.21ms med=40.78ms  p(90)=1.43s   p(95)=3.24s   p(99)=11.26s   max=1m0s     count=445
+    http_req_failed............: 77.97% 347 out of 445
+    http_req_receiving.........: avg=25.96ms  med=766.75µs p(90)=25.44ms p(95)=70.67ms p(99)=328.62ms max=2.42s    count=445
+    http_req_sending...........: avg=4.38ms   med=396.58µs p(90)=5.19ms  p(95)=16.25ms p(99)=71.05ms  max=303.08ms count=445
+    http_req_tls_handshaking...: avg=19.94ms  med=0s       p(90)=0s      p(95)=0s      p(99)=2.26ms   max=8.72s    count=445
+    http_req_waiting...........: avg=765.86ms med=35.23ms  p(90)=1.18s   p(95)=3.18s   p(99)=10.44s   max=1m0s     count=445
+    http_reqs..................: 445    0.561808/s
+
+    EXECUTION
+    iteration_duration.........: avg=3.69s    med=1.16s    p(90)=7.54s   p(95)=14.8s   p(99)=38.38s   max=1m3s     count=214
+    iterations.................: 214    0.270173/s
+
+    NETWORK
+    data_received..............: 1.1 MB 1.4 kB/s
+    data_sent..................: 102 kB 128 B/s
+
+
+
+time="2026-11-15T15:33:52Z" level=error msg="thresholds on metrics 'checks, delai_notification{phase:nominale}, http_req_duration{name:publier,phase:nominale}, http_req_failed{phase:nominale}, http_req_failed{phase:pointe}' have been crossed"
+
+--- Mise à l'échelle relevée pendant le test (une ligne toutes les 10 secondes)
+heure     annonces_cpu_pct  annonces_demandes  annonces_prets  notifications_cpu_pct  notifications_demandes  notifications_prets  file_en_attente
+16:20:27  40                2                  2               31                     2                       2                    0
+16:20:38  40                2                  2               31                     2                       2                    0
+16:20:48  32                2                  2               20                     2                       2                    0
+16:21:00  11                2                  2               12                     2                       2                    0
+16:21:11  11                2                  2               12                     2                       2                    0
+16:21:22  43                2                  2               57                     2                       2                    0
+16:21:32  75                2                  2               61                     2                       2                    0
+16:21:49  75                2                  2               61                     2                       2                    0
+16:22:00  75                2                  2               61                     2                       2                    0
+16:22:12  125               4                  2               132                    4                       2                    0
+16:22:25  125               4                  2               132                    4                       2                    0
+16:24:14  4                 1                  4
+16:24:38  4                 4
+16:24:54  4                 4                  0
+16:25:06  151               4                  2               97                     4                       2                    0
+16:25:18  151               4                  2               97                     4                       2                    0
+16:25:30  87                4                  2               50                     4                       2                    0
+16:25:46  35                4                  2               36                     4                       2                    0
+16:26:31  4                 4                  4               4                      0
+16:26:43  23                4                  4               27                     4                       4                    0
+16:26:54  23                4                  4               27                     4                       4                    0
+16:27:05  4                 21                 4               4                      0
+16:27:35  4                 4                  4               4                      0
+16:27:52  4                 2                  4               4                      0
+16:28:07  4                 4                  4               4                      0
+16:28:19  29                4                  4               23                     4                       4                    0
+16:28:30  21                4                  4               26                     4                       4                    0
+16:28:41  21                4                  4               26                     4                       4                    0
+16:28:54  21                4                  4               24                     4                       4                    0
+16:29:10  4                 4                  4               4                      0
+16:29:45
+16:31:35
+16:32:38
+16:33:40  4                 0
+16:34:45  4                 4                  4               2                      0
+16:35:01  4                 2                  4               0
+16:35:17  4                 4
+16:35:29  4                 4
+16:35:41  4                 4                  0
+16:35:54  4                 4                  4               0
+16:36:04  32                4                  4               40                     4                       4                    0
+16:36:16  32                4                  4               40                     4                       4                    0
+16:36:26  25                4                  4               30                     4                       4                    0
+16:36:41  17                4                  4               27                     4                       4                    0
+16:36:52  22                4                  4               22                     4                       4                    0
+16:37:03  22                4                  4               22                     4                       4                    0
+16:37:13  34                4                  4               33                     4                       4                    0
+16:37:23  17                4                  4               34                     4                       4                    0
+16:37:34  17                4                  4               34                     4                       4                    0
+16:37:44  8                 4                  4               7                      4                       4                    0
+16:37:55  10                4                  4               16                     4                       4                    0
+16:38:05  10                4                  4               11                     4                       4                    0
+16:38:16  10                4                  4               11                     4                       4                    0
+16:38:26  8                 4                  4               7                      4                       4                    0
+16:38:37  6                 4                  4               6                      4                       4                    0
+16:38:47  6                 4                  4               6                      4                       4                    0
+16:38:58  5                 4                  4               6                      4                       4                    0
+16:39:08  6                 4                  4               7                      4                       4                    0
+16:39:18  6                 4                  4               7                      4                       4                    0
+16:39:28  7                 4                  4               11                     4                       4                    0
+16:39:39  6                 4                  4               9                      4                       4                    0
+16:39:49  6                 4                  4               9                      4                       4                    0
+16:39:59  7                 4                  4               6                      4                       4                    0
+16:40:10  7                 4                  4               6                      4                       4                    0
+16:40:20  7                 4                  4               6                      4                       4                    0
+16:40:31  8                 4                  4               6                      4                       4                    0
+16:40:41  11                4                  4               12                     4                       4                    0
+16:40:52  11                4                  4               8                      4                       4                    0
+16:41:02  8                 4                  4               8                      4                       4                    0
+
+--- Décisions du HPA (heure UTC ; les événements du cluster sont gardés une heure)
+HEURE                  OBJET           MESSAGE
+2026-11-15T15:22:03Z   annonces        New size: 4; reason: cpu resource utilization (percentage of request) above target
+2026-11-15T15:22:03Z   notifications   New size: 4; reason: cpu resource utilization (percentage of request) above target
+2026-11-15T15:41:07Z   annonces        New size: 2; reason: All metrics below target
+2026-11-15T15:41:07Z   notifications   New size: 2; reason: All metrics below target
+
+--- Redémarrages de conteneurs dans l'espace de noms
+Pendant le test : les deux services, Keycloak et RabbitMQ ont redémarré. Compteurs cumulés de chaque pod, à la fin :
+POD                              REDEMARRAGES   ETAT
+annonces-97746b4d8-4w96s         2              Running
+annonces-97746b4d8-5gzhl         1              Running
+annonces-97746b4d8-mzk6b         2              Running
+annonces-97746b4d8-vp5bv         1              Running
+keycloak-6db5d7d646-r9qs9        3              Running
+notifications-75dcf797c4-55x69   2              Running
+notifications-75dcf797c4-59dz2   2              Running
+notifications-75dcf797c4-nzjgf   1              Running
+notifications-75dcf797c4-tc7sf   1              Running
+postgresql-0                     0              Running
+rabbitmq-0                       1              Running
