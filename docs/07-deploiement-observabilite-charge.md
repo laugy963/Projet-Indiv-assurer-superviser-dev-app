@@ -5,7 +5,7 @@
 - Références : [architecture, paragraphes 8 à 10](03-architecture.md), [indicateurs I2 et I4](02-processus-developpement.md#2-indicateurs-de-qualité), [pipeline](06-pipeline-ci-cd.md)
 - Fichiers : [deploy/k8s/](../deploy/k8s/README.md), [tests/charge/](../tests/README.md#test-de-charge)
 - Décision prise à cette étape : fiche [0017](adr/0017-manifestes-et-kustomize.md)
-- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt)
+- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt) et [ce qu'en a vu la supervision](../tests/resultats/charge-50-200-supervision.csv), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt) ; [pull request n° 3](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/3)
 
 ## 1. Objet
 
@@ -40,7 +40,7 @@ Quatre paramètres n'étaient fixés par aucun document. Choix du 15 novembre 20
 | Supervision | `deploy/k8s/observabilite/` | Valeurs du chart Helm, objets de collecte, tableau de bord Grafana, script d'installation |
 | Test de charge | `tests/charge/` | Scénario k6, lanceur, création des comptes |
 | Analyse des manifestes | `tests/securite/analyses.sh manifestes` | Trivy, mode configuration, sur `deploy/k8s/` |
-| Preuves | `tests/resultats/` | `deploiement.txt` ; `charge-50-200.txt`, `charge-20-80.txt`, `charge-50-200-execution-1.txt` |
+| Preuves | `tests/resultats/` | `deploiement.txt` ; `charge-50-200.txt`, `charge-50-200-supervision.csv`, `charge-20-80.txt`, `charge-50-200-execution-1.txt` |
 
 Modifications du prototype rendues nécessaires par le déploiement, tests écrits avant le code (commit rouge `1692ff4`, commit vert `6b5edb6`) :
 
@@ -87,7 +87,16 @@ Un seul espace de noms, `epouvante`, porte le prototype. Il applique le niveau `
 | 5 | Topologie et comptes du broker, comptes de test de Keycloak | — |
 | 6 | Phase 2 : les deux services, leur HPA, les Ingress et leurs certificats | 9 s |
 
-Durée totale : 149 s la première fois, 26 à 109 s ensuite. Les services dépendent de la phase 1 pour démarrer : c'est le même ordre que dans l'environnement de test (`tests/environnement/demarrer.sh`), avec les mêmes commandes pour le broker et Keycloak.
+Durée totale : 149 s la première fois, 26 à 109 s ensuite, 46 s avec les images du pipeline. Les services dépendent de la phase 1 pour démarrer : c'est le même ordre que dans l'environnement de test (`tests/environnement/demarrer.sh`), avec les mêmes commandes pour le broker et Keycloak.
+
+Images déployées. Le script accepte deux origines. Pendant la mise au point : les images construites sur le poste. Pour la vérification finale : celles du pipeline, tirées de ghcr.io et désignées par leur empreinte, sans reconstruction.
+
+| Image du pipeline (commit `9d094de`, exécution n° 43736241303) | Empreinte | Constaté dans le pod |
+|---|---|---|
+| `ghcr.io/laugy963/epouvante-annonces` | `sha256:796878c3…` | Variante arm64, Node.js 26.13.1, `npm` absent |
+| `ghcr.io/laugy963/epouvante-notifications` | `sha256:1e8106f0…` | — |
+
+C'est la règle « construire une fois, déployer partout » : l'image que le pipeline a testée et scannée est celle qui tourne. La variante arm64, que le pipeline construit sans l'exécuter (étape 6, paragraphe 11), s'exécute ici sur le cluster.
 
 Les migrations de base de données sont jouées par un conteneur d'initialisation (« initContainer » : conteneur qui s'exécute avant le service, dans le même pod), comme le prévoit la fiche 0008.
 
@@ -161,7 +170,7 @@ Les noms en `.localhost` sont résolus vers 127.0.0.1 par le poste lui-même : n
 
 ## 5. Vérification du déploiement
 
-`deploy/k8s/verifier.sh` : 49 contrôles réussis sur 49, en 45 secondes. Sortie brute : [deploiement.txt](../tests/resultats/deploiement.txt).
+`deploy/k8s/verifier.sh` : 49 contrôles réussis sur 49, en 55 secondes, sur les images du pipeline. Sortie brute : [deploiement.txt](../tests/resultats/deploiement.txt).
 
 | Volet | Contrôles | Ce qui est prouvé |
 |---|---|---|
@@ -185,16 +194,23 @@ Contrôles de sécurité du pipeline, rejoués sur le poste avant de pousser (`t
 
 L'analyse des manifestes était reportée tant qu'ils n'existaient pas (processus de développement, paragraphe 4.7). Elle entre en mode « informer », sur le poste seulement : ses trois constats ne sont pas corrigés à cette étape, ils vont à l'audit. Les deux services, eux, passent tous les contrôles.
 
-Les 12 tests d'acceptation du backlog, rejoués sur le cluster (`source deploy/k8s/acces.sh && npm run test:acceptation`) : 12 réussis sur 12, en 15 secondes.
+Les 12 tests d'acceptation du backlog, rejoués sur le cluster (`source deploy/k8s/acces.sh && npm run test:acceptation`) : 12 réussis sur 12, deux fois. C'est le contrôle que le schéma du pipeline nomme `verification`, lancé ici à la main.
 
-| Mesure sur le cluster | Valeur | Rappel, Docker Compose (étape 5) |
-|---|---|---|
-| Délai entre la publication et la notification visible (CA-11) | 111 ms | 44 à 79 ms |
-| Arrêt du service notifications (CA-15) : passage à zéro pod | 2,0 s | 0,5 à 0,8 s |
-| Relance : deux pods prêts, migrations comprises | 6,8 s | 2,3 à 3,2 s |
-| Notification visible après la relance | 0,2 s | 0,2 à 0,3 s |
+| Mesure sur le cluster | Images du poste, premier déploiement | Images du pipeline | Rappel, Docker Compose (étape 5) |
+|---|---|---|---|
+| Délai entre la publication et la notification visible (CA-11) | 111 ms | 70 ms | 44 à 79 ms |
+| Arrêt du service notifications (CA-15) : passage à zéro pod | 2,0 s | 6,2 s | 0,5 à 0,8 s |
+| Relance : deux pods prêts, migrations comprises | 6,8 s | 9,2 s | 2,3 à 3,2 s |
+| Notification visible après la relance | 0,2 s | 0,3 s | 0,2 à 0,3 s |
 
-Sur le cluster, la requête traverse en plus l'Ingress en HTTPS, et Keycloak tourne en mode production.
+Sur le cluster, la requête traverse en plus l'Ingress en HTTPS, et Keycloak tourne en mode production. Entre les deux passages, l'arrêt s'allonge de 4 secondes : c'est le délai de 5 secondes ajouté avant l'arrêt d'un pod (paragraphe 6).
+
+Passage par le pipeline (pull request n° 3) :
+
+| Exécution | Commit | Verdict | Ce qu'elle montre |
+|---|---|---|---|
+| [43735733420](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43735733420) | `2e3867d` | Échec de `qualite` | Une seule condition du quality gate : 4,6 % de lignes dupliquées dans le nouveau code, pour un seuil de 3 %. Les deux fichiers de tests des routes internes se répétaient. La suite est sautée |
+| [43736241303](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43736241303) | `9d094de` | Réussite, 9 min 9 s | Scénario de test écrit une fois dans le socle : duplication 0,0 %, couverture du nouveau code 92,6 %, notes A. Les 10 jobs réussis ; images construites, scannées, testées |
 
 ## 6. Disponibilité démontrée
 
@@ -362,7 +378,7 @@ Comportement de la mise à l'échelle :
 
 Pendant ce test, aucun conteneur du prototype n'a redémarré. Quatre composants d'infrastructure l'ont fait (cert-manager, metrics-server, kube-state-metrics, l'opérateur Prometheus). La file du broker n'a jamais dépassé 5 messages en attente.
 
-Recoupement par la supervision. Prometheus mesure côté serveur ce que k6 mesure côté client :
+Recoupement par la supervision. Prometheus mesure côté serveur ce que k6 mesure côté client. Il ne garde que 24 heures de mesures : les séries du tableau de bord sur la période du test sont exportées dans [charge-50-200-supervision.csv](../tests/resultats/charge-50-200-supervision.csv) par `tests/charge/exporter-supervision.sh`.
 
 | Mesure | k6 | Prometheus |
 |---|---|---|
@@ -455,7 +471,7 @@ Les documents validés ne sont pas réécrits. Ce tableau dit ce que la réalisa
 | Sujet | Prévu | Réalisé | Raison |
 |---|---|---|---|
 | Environnement de démonstration | Cluster hébergé en Europe | Cluster k3d du poste | Paragraphe 2 |
-| Temps 4 du pipeline : `deploiement`, `verification` | Sur `main`, après validation humaine | Non réalisé | Les exécuteurs de GitHub ne joignent pas le poste. `deployer.sh` accepte déjà les images du pipeline, par leur empreinte |
+| Temps 4 du pipeline : `deploiement`, `verification` | Deux jobs, sur `main`, après validation humaine | Les deux gestes sont faits à la main, sur le poste : déploiement des images du pipeline par leur empreinte, puis tests d'acceptation | Les exécuteurs de GitHub ne joignent pas le poste |
 | Job `test-de-charge` | Lancement manuel dans le pipeline | Lancement sur le poste | Même raison. La grille le dit facultatif |
 | Sondes | « Vivant » et « prêt » | Les deux, plus une sonde de démarrage | Laisser démarrer sans allonger la sonde « vivant » |
 | Supervision | Chart kube-prometheus-stack | Le même, allégé ; Grafana à la demande sur le poste | La fiche 0011 l'annonçait : « elle ne tournera peut-être que sur l'environnement distant ». Mesuré : elle tourne, mais pas pendant une charge |
@@ -485,7 +501,7 @@ Les documents validés ne sont pas réécrits. Ce tableau dit ce que la réalisa
 | Images tierces | PostgreSQL, RabbitMQ, Keycloak : désignées par une étiquette de version, non scannées par le pipeline. Constat de l'étape 6 sur `postgres:18.7-alpine` inchangé | Audit, étape 8 |
 | Conteneurs tiers | Système de fichiers inscriptible : 3 constats hauts de Trivy. Keycloak, lancé par `start`, écrit dans son dossier d'installation au démarrage | Audit, étape 8 |
 | Analyse des manifestes | Lancée sur le poste, pas dans le pipeline | Audit, étape 8 : l'ajouter en mode « informer », puis bloquant |
-| Images déployées | Construites sur le poste, non scannées. Les images du pipeline, scannées, n'ont pas encore été déployées sur le cluster | À la fusion de cette étape |
+| Tests de charge | Joués sur les images construites sur le poste, au même code que celles du pipeline, avant le passage par le pipeline | À rejouer sur les images du pipeline, avec la pointe |
 | Migrations | Jouées par chaque pod à son démarrage : chaque montée en charge paie ce coût | Cible : un Job par déploiement |
 | Mise à l'échelle du service notifications | Sur le processeur ; la longueur de la file serait un meilleur signal | Cible |
 | Limitation de débit à l'entrée | Absente (risque R8) | Cible |
@@ -508,6 +524,8 @@ Depuis la racine du dépôt. Commandes exécutées avec succès le 15 novembre 2
 | Essai court du test de charge | `tests/charge/lancer.sh essai` |
 | Test de charge, 50 puis 200 utilisateurs | `tests/charge/lancer.sh` |
 | Test de charge, autres paliers | `CHARGE_NOMINALE=20 CHARGE_POINTE=80 tests/charge/lancer.sh` |
+| Exporter ce que la supervision a vu d'un test | `tests/charge/exporter-supervision.sh <début UTC> <fin UTC> <fichier>` |
+| Déployer les images du pipeline | `IMAGE_ANNONCES=ghcr.io/…@sha256:… IMAGE_NOTIFICATIONS=ghcr.io/…@sha256:… deploy/k8s/deployer.sh` |
 | Ouvrir Grafana | `kubectl -n monitoring scale deploy supervision-grafana --replicas=1`, puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` |
 | Arrêter le cluster | `k3d cluster stop epouvante` |
 

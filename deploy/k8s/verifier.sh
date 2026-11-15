@@ -191,8 +191,14 @@ if kubectl get namespace monitoring >/dev/null 2>&1; then
     sleep 3
   done
   verdict "la publication du volet 4 est comptée (POST /api/annonces, code 201)" "$(au_moins "$(prom "$PUBLICATIONS")" 1)" "oui"
+  # Un taux se calcule sur deux mesures au moins : après un déploiement, il faut deux collectes des nouveaux pods.
+  CENTILE='histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="epouvante"}[5m])))'
+  for _ in $(seq 1 30); do
+    [[ "$(prom "$CENTILE")" =~ ^[0-9.]+$ ]] && break
+    sleep 3
+  done
   verdict "le temps de réponse au 95e centile se calcule (indicateur I2)" \
-    "$([[ "$(prom 'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="epouvante"}[5m])))')" =~ ^[0-9.]+$ ]] && echo oui || echo non)" "oui"
+    "$([[ "$(prom "$CENTILE")" =~ ^[0-9.]+$ ]] && echo oui || echo non)" "oui"
   note "Pods de l'espace de noms monitoring :"
   kubectl -n monitoring get pods --no-headers | awk '{print "    " $1 "  " $2 "  " $3}' | tee -a "$RAPPORT"
 else

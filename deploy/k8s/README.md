@@ -22,10 +22,11 @@ Depuis la racine du dépôt, le cluster k3d étant démarré (`deploy/k3d/README
 | Action | Commande | Durée mesurée |
 |---|---|---|
 | Déployer, images construites sur le poste | `deploy/k8s/deployer.sh` | 149 s la première fois, 100 s ensuite |
-| Déployer les images du pipeline | `IMAGE_ANNONCES=ghcr.io/…@sha256:… IMAGE_NOTIFICATIONS=ghcr.io/…@sha256:… deploy/k8s/deployer.sh` | — |
+| Déployer les images du pipeline | `IMAGE_ANNONCES=ghcr.io/…@sha256:… IMAGE_NOTIFICATIONS=ghcr.io/…@sha256:… deploy/k8s/deployer.sh` | 46 s |
 | Installer la supervision | `deploy/k8s/observabilite/installer.sh` | 65 à 90 s |
-| Vérifier le déploiement | `deploy/k8s/verifier.sh` | 45 s |
-| Rejouer les tests d'acceptation sur le cluster | `source deploy/k8s/acces.sh && npm run test:acceptation` | 15 s |
+| Vérifier le déploiement | `deploy/k8s/verifier.sh` | 45 à 55 s |
+| Rejouer les tests d'acceptation sur le cluster | `source deploy/k8s/acces.sh && npm run test:acceptation` | 15 à 25 s |
+| Relever l'empreinte d'une image du pipeline | `docker buildx imagetools inspect ghcr.io/<compte>/epouvante-annonces:<SHA du commit>` | — |
 | Voir ce qui serait appliqué, sans rien appliquer | `kubectl kustomize deploy/k8s/overlays/local` | — |
 | Appeler l'API à la main | `source deploy/k8s/acces.sh && curl --cacert "$AC_LOCALE" "$URL_API/api/annonces"` | — |
 | Ouvrir Grafana | `kubectl -n monitoring scale deploy supervision-grafana --replicas=1`, puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` | — |

@@ -25,6 +25,7 @@ Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant d
 | `charge/scenario.js` | Scénario k6 : paliers de charge, seuils des indicateurs I2 et I4, mesure du délai de notification |
 | `charge/lancer.sh` | Lance k6 en conteneur, relève la mise à l'échelle toutes les 10 secondes, écrit la preuve |
 | `charge/comptes.sh` | Crée dans Keycloak un compte par utilisateur virtuel |
+| `charge/exporter-supervision.sh` | Exporte de Prometheus ce que la supervision a vu pendant un test : Prometheus ne garde que 24 heures |
 | `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) |
 
 ## Rejouer
