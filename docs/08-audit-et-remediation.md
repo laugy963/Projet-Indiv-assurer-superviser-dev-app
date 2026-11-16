@@ -4,7 +4,7 @@
 - Statut : en attente de validation
 - Références : [analyse de risques de l'étape 3](03-architecture.md#83-analyse-de-risques), [limites du prototype](05-developpement-poc.md), [limites du pipeline](06-pipeline-ci-cd.md), [test de charge et limites du déploiement](07-deploiement-observabilite-charge.md)
 - Fichiers : [audit.sh](../tests/securite/audit.sh), [analyses.sh](../tests/securite/analyses.sh)
-- Preuve : [audit-securite.txt](../tests/resultats/audit-securite.txt), inventaire de sécurité rejoué le 16 novembre 2026
+- Preuve : [audit-securite.txt](../tests/resultats/audit-securite.txt), inventaire de sécurité rejoué le 16 novembre 2026 ; [pull request n° 5](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/5), en brouillon jusqu'à la validation de l'étape
 - Décision prise à cette étape : aucune fiche. L'audit ne change pas l'architecture ; chaque changement proposé est une action du plan, à décider à son échéance
 
 ## 1. Objet
