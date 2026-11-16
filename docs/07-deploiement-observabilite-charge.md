@@ -5,7 +5,7 @@
 - Références : [architecture, paragraphes 8 à 10](03-architecture.md), [indicateurs I2 et I4](02-processus-developpement.md#2-indicateurs-de-qualité), [pipeline](06-pipeline-ci-cd.md)
 - Fichiers : [deploy/k8s/](../deploy/k8s/README.md), [tests/charge/](../tests/README.md#test-de-charge)
 - Décision prise à cette étape : fiche [0017](adr/0017-manifestes-et-kustomize.md)
-- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt), [ce qu'en a vu la supervision](../tests/resultats/charge-50-200-supervision.csv) et [les captures du tableau de bord](captures/README.md), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt) ; [pull request n° 3](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/3)
+- Preuves : [deploiement.txt](../tests/resultats/deploiement.txt), [charge-50-200.txt](../tests/resultats/charge-50-200.txt), [ce qu'en a vu la supervision](../tests/resultats/charge-50-200-supervision.csv) et [les captures du tableau de bord](captures/README.md), [charge-20-80.txt](../tests/resultats/charge-20-80.txt), [charge-50-200-execution-1.txt](../tests/resultats/charge-50-200-execution-1.txt) ; [pull request n° 3](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/3), fusionnée le 15 novembre 2026
 
 ## 1. Objet
 
@@ -212,6 +212,13 @@ Passage par le pipeline (pull request n° 3) :
 |---|---|---|---|
 | [43735733420](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43735733420) | `2e3867d` | Échec de `qualite` | Une seule condition du quality gate : 4,6 % de lignes dupliquées dans le nouveau code, pour un seuil de 3 %. Les deux fichiers de tests des routes internes se répétaient. La suite est sautée |
 | [43736241303](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43736241303) | `9d094de` | Réussite, 9 min 9 s | Scénario de test écrit une fois dans le socle : duplication 0,0 %, couverture du nouveau code 92,6 %, notes A. Les 10 jobs réussis ; images construites, scannées, testées |
+| [43737664253](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43737664253), [43738284252](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43738284252) | `cfd594d`, `5eb5ff9` | Réussites, 5 min 46 s et 5 min 44 s | Commits de documentation : contrôlés comme le code |
+| [43740825486](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43740825486) | `efa91fd` | Échec de `qualite` | Script de capture : note de sécurité C. Il se connectait à des adresses non vérifiées (constats S7044, S8476, S8480) |
+| [43741456852](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43741456852) | `4d6d759` | Échec de `sast` | La correction écrivait des connexions non chiffrées vers le port de débogage de Chrome : Semgrep les signale |
+| [43742616740](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43742616740) | `b25cc0f` | Échec de `sast` | Chrome piloté par un tube, sans port : le script passe. Semgrep signale cette fois la ligne du journal qui citait l'adresse fautive |
+| [43742936479](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43742936479) | `0f1c88d` | Réussite, 5 min 55 s | Ligne reformulée. Les 10 jobs réussis, quality gate tenu : c'est l'état fusionné |
+
+Quatre exécutions en échec sur huit, chaque fois sur un défaut réel de ce qui venait d'être écrit, corrigé dans la même pull request. Aucun contrôle n'a été désactivé ni contourné.
 
 ## 6. Disponibilité démontrée
 
@@ -539,6 +546,19 @@ Depuis la racine du dépôt. Commandes exécutées avec succès le 15 novembre 2
 
 Avant un test de charge sur le poste : fermer les applications inutiles, arrêter les autres conteneurs Docker, refermer Grafana.
 
-## 14. Suite
+## 14. Après la fusion
+
+| Point | Réalisation | Preuve |
+|---|---|---|
+| Fusion | Pull request n° 3 fusionnée le 15 novembre 2026 par un commit de fusion, et non par un « squash » : les commits « rouge » puis « vert » des sondes sont dans `main` | Commit `43a96bd` |
+| Pipeline sur `main` | Déclenché par la fusion : 10 jobs réussis en 9 min 53 s | [Exécution 43744053655](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43744053655) |
+| Quality gate de `main` | Tenu : 5 369 lignes de code, 0 bug, 0 vulnérabilité, 0 défaut de maintenabilité, dette 0,0 %, couverture 92,5 %, duplication 0,0 % | SonarQube Cloud |
+| Images de `main` | Publiées pour arm64 et amd64 : `epouvante-annonces@sha256:1168da5b…`, `epouvante-notifications@sha256:0d5cabcf…` | ghcr.io |
+
+Les images de `main` ne sont pas celles qui tournent sur le cluster : il porte encore celles du commit `9d094de` (paragraphe 4.2), au même code de service. Les redéployer est une commande : `IMAGE_ANNONCES=… IMAGE_NOTIFICATIONS=… deploy/k8s/deployer.sh`.
+
+L'étape reste en attente de validation. Cette section a elle-même été ajoutée par une pull request de clôture : `main` est protégée.
+
+## 15. Suite
 
 L'étape 8 analyse les résultats des tests, des scans et de ces mesures, et en tire le plan de remédiation. Les limites du paragraphe 12 en sont la matière. Le déploiement distant, lui, attend la réponse de l'intervenant et la commande de l'environnement.
