@@ -22,7 +22,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 6 | Pipeline CI/CD | Terminée |
 | 7 | Déploiement, observabilité, charge | Terminée |
 | 8 | Audit et remédiation | Terminée |
-| 9 | Soutenance | À faire |
+| 9 | Soutenance | En attente de validation |
 
 ## Arborescence
 
@@ -38,11 +38,11 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 ├── deploy/
 │   ├── k3d/               configuration du cluster local (étape 4)
 │   ├── keycloak/          royaume Keycloak versionné, sans compte ni mot de passe (étape 5)
-│   └── k8s/               manifestes Kubernetes, scripts de déploiement et de vérification, supervision (étape 7)
+│   └── k8s/               manifestes Kubernetes, scripts de déploiement et de vérification, supervision (étape 7) ; script de démonstration (étape 9)
 ├── tests/
 │   ├── environnement/     environnement de test Docker Compose (étape 5)
 │   ├── acceptation/       tests d'acceptation du backlog (étape 5)
-│   ├── resultats/         sortie brute de la dernière exécution des tests et des contrôles (étapes 5, 7 et 8)
+│   ├── resultats/         sortie brute de la dernière exécution des tests et des contrôles (étapes 5, 7, 8 et 9)
 │   ├── securite/          contrôles de sécurité du pipeline, rejouables sur le poste (étape 6) ; inventaire de l'audit (étape 8)
 │   └── charge/            scénario de test de charge k6 et son lanceur (étape 7)
 ├── sandbox/               code et configuration des expérimentations (étape 4)
@@ -62,7 +62,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── schemas/           schémas draw.io : source .drawio, export .png, page .md
     ├── captures/          captures du tableau de bord Grafana pendant le test de charge (étape 7)
     ├── experimentations/  synthèses des protocoles d'expérimentation
-    └── soutenance/        support et script de démonstration
+    └── soutenance/        plan chronométré, contenu des diapositives, démonstration, questions du jury (étape 9)
 ```
 
 ## Documents à lire en premier
@@ -77,9 +77,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 8. [Pipeline CI/CD](docs/06-pipeline-ci-cd.md), avec ses fichiers dans [.github/workflows/](.github/workflows/)
 9. [Déploiement, observabilité, charge](docs/07-deploiement-observabilite-charge.md), avec les [manifestes et scripts](deploy/k8s/README.md)
 10. [Audit de sécurité et plan de remédiation](docs/08-audit-et-remediation.md), avec sa [preuve](tests/resultats/audit-securite.txt)
-11. [Fiches de décision](docs/adr/README.md)
-12. [Rétroplanning](docs/retroplanning.md)
-13. [Journal de bord](docs/journal.md)
+11. [Soutenance](docs/soutenance/README.md) : [plan et diapositives](docs/soutenance/01-plan-et-diapositives.md), [démonstration](docs/soutenance/02-demonstration.md), [questions du jury](docs/soutenance/03-questions-du-jury.md)
+12. [Fiches de décision](docs/adr/README.md)
+13. [Rétroplanning](docs/retroplanning.md)
+14. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 

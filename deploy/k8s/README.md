@@ -14,10 +14,11 @@ Manifestes et scripts de l'étape 7. Les manifestes sont des fichiers YAML assem
 | `deployer.sh` | Déploie tout, dans l'ordre. Crée les Secrets au hasard : aucun n'est dans le dépôt |
 | `verifier.sh` | Contrôle le déploiement : 49 contrôles, résultat dans `tests/resultats/deploiement.txt` |
 | `acces.sh` | À charger pour appeler le prototype depuis le poste : adresses, certificat de l'autorité locale, comptes de test |
+| `demo.sh` | Démonstration de la soutenance, en huit temps : chaîne complète, sécurité, perte d'un pod. Déroulé dans [docs/soutenance/02-demonstration.md](../../docs/soutenance/02-demonstration.md) |
 
 ## Commandes
 
-Depuis la racine du dépôt, le cluster k3d étant démarré (`deploy/k3d/README.md`). Commandes exécutées avec succès le 15 novembre 2026.
+Depuis la racine du dépôt, le cluster k3d étant démarré (`deploy/k3d/README.md`). Commandes exécutées avec succès le 15 novembre 2026 ; celles de la démonstration, le 16 novembre 2026.
 
 | Action | Commande | Durée mesurée |
 |---|---|---|
@@ -26,6 +27,8 @@ Depuis la racine du dépôt, le cluster k3d étant démarré (`deploy/k3d/README
 | Installer la supervision | `deploy/k8s/observabilite/installer.sh` | 65 à 90 s |
 | Vérifier le déploiement | `deploy/k8s/verifier.sh` | 45 à 55 s |
 | Rejouer les tests d'acceptation sur le cluster | `source deploy/k8s/acces.sh && npm run test:acceptation` | 15 à 25 s |
+| Répéter la démonstration, sans pause | `deploy/k8s/demo.sh repetition` : résultat dans `tests/resultats/demonstration.txt` | 14 à 16 s |
+| Jouer la démonstration en direct | `deploy/k8s/demo.sh` : la touche Entrée lance chaque temps | — |
 | Relever l'empreinte d'une image du pipeline | `docker buildx imagetools inspect ghcr.io/<compte>/epouvante-annonces:<SHA du commit>` | — |
 | Voir ce qui serait appliqué, sans rien appliquer | `kubectl kustomize deploy/k8s/overlays/local` | — |
 | Appeler l'API à la main | `source deploy/k8s/acces.sh && curl --cacert "$AC_LOCALE" "$URL_API/api/annonces"` | — |

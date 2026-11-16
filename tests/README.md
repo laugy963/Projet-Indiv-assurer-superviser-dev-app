@@ -27,7 +27,7 @@ Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant d
 | `charge/lancer.sh` | Lance k6 en conteneur, relève la mise à l'échelle toutes les 10 secondes, écrit la preuve |
 | `charge/comptes.sh` | Crée dans Keycloak un compte par utilisateur virtuel |
 | `charge/exporter-supervision.sh` | Exporte de Prometheus ce que la supervision a vu pendant un test : Prometheus ne garde que 24 heures |
-| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) ; `audit-securite.txt`, de l'inventaire de l'audit (étape 8) |
+| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) ; `audit-securite.txt`, de l'inventaire de l'audit (étape 8) ; `demonstration.txt`, de la répétition de la démonstration (étape 9) |
 
 ## Rejouer
 

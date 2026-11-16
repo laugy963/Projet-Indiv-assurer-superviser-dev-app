@@ -1,0 +1,78 @@
+Démonstration du prototype — 2026-11-16 15:02:48
+Cluster : v1.35.5+k3s1
+Images : ghcr.io/laugy963/epouvante-annonces@sha256:796878c39f8e46a83d637d890c1bf35c6f529a4694a6ea4ed81e52559d4d3876  ghcr.io/laugy963/epouvante-notifications@sha256:1e8106f0cac2f445784884c44eae1f484106003386c94158a2efcfa386c9d302  
+
+=== 1. Le prototype tourne sur Kubernetes : deux pods par service, mise à l'échelle prête
+  $ kubectl -n epouvante get pods,hpa
+    NAME                            READY   STATUS    RESTARTS      AGE
+    annonces-7686f7d5d9-4rkt4       1/1     Running   0             13s
+    annonces-7686f7d5d9-v7jnx       1/1     Running   0             95s
+    keycloak-6db5d7d646-2ddrk       1/1     Running   1 (14m ago)   20h
+    notifications-79f644777-7l9ll   1/1     Running   0             3m31s
+    notifications-79f644777-8926l   1/1     Running   0             3m23s
+    postgresql-0                    1/1     Running   4 (14m ago)   25h
+    rabbitmq-0                      1/1     Running   5 (14m ago)   25h
+    NAME            REFERENCE                  TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+    annonces        Deployment/annonces        cpu: 14%/70%   2         4         2          25h
+    notifications   Deployment/notifications   cpu: 7%/70%    2         4         2          25h
+  OK     pods prêts : annonces, notifications : 2 2 
+    durée : 0 s
+
+=== 2. HTTPS seulement, et rien sans jeton
+  $ curl http://api.epouvante.localhost/api/annonces
+  OK     HTTP est redirigé vers HTTPS : 301 https://api.epouvante.localhost/api/annonces
+  $ curl --cacert <autorité locale> https://api.epouvante.localhost/api/annonces
+    {"code":401,"message":"Jeton absent ou invalide"}
+  OK     sans jeton : code HTTP, puis vérification du certificat (0 = chaîne valide) : 401 0
+    durée : 0 s
+
+=== 3. Keycloak délivre le jeton ; le service y lit le rôle
+  $ curl -d grant_type=password -d username=membre-a … https://auth.epouvante.localhost/realms/epouvante/protocol/openid-connect/token
+    émetteur     : https://auth.epouvante.localhost/realms/epouvante
+    destinataire : api-epouvante, account
+    compte       : membre-a
+    rôles        : membre
+    durée de vie : 120 s
+  OK     jeton délivré à membre-a : oui
+    durée : 0 s
+
+=== 4. Membre B déclare son centre d'intérêt : les figurines
+  $ PUT /api/centres-interet  {"categories":["figurines"]}
+  OK     centres d'intérêt enregistrés : 200
+    durée : 1 s
+
+=== 5. Membre A publie une annonce de don
+  $ POST /api/annonces  {"titre":"Figurine Evil Ed","categorie":"figurines","type":"don"}
+    {"id":"8f797866-ca93-424a-ab06-026190967d3b","titre":"Figurine Evil Ed, démonstration du 16/11 à 15:02:49","categorie":"figurines","type":"don","statut":"publiee"}
+  OK     annonce créée : 201
+    durée : 0 s
+
+=== 6. Membre B est notifié : l'événement a traversé le broker, sans appel entre les deux services
+  $ GET /api/notifications   (compte membre-b)
+    {"id":"299bb480-6a15-4eb3-b330-caad8a58cbd3","annonceId":"8f797866-ca93-424a-ab06-026190967d3b","titre":"Figurine Evil Ed, démonstration du 16/11 à 15:02:49","categorie":"figurines","typeAnnonce":"don","date":"2026-11-16T14:02:49.442Z"}
+  OK     notification de cette annonce chez membre-b : oui
+    oui, à la lecture n° 1
+    durée : 0 s
+
+=== 7. Autorisation par rôle : un membre ne retire pas une annonce, le modérateur si
+  $ DELETE /api/annonces/<id>   (compte membre-a, rôle membre)
+  OK     retrait par un membre : 403
+  $ DELETE /api/annonces/<id>   (compte moderateur-test, rôle moderateur)
+  OK     retrait par le modérateur : 204
+    durée : 1 s
+
+=== 8. Perte d'un pod : le service continue, Kubernetes remplace le pod
+  $ kubectl -n epouvante delete pod annonces-7686f7d5d9-4rkt4
+    40 lectures de la liste des annonces pendant le remplacement, une toutes les 0,25 s…
+    codes reçus : 40 × 200  
+  OK     réponses autres que 200 pendant le remplacement : 0
+  $ kubectl -n epouvante get pods -l app=annonces
+    NAME                        READY   STATUS    RESTARTS   AGE
+    annonces-7686f7d5d9-9nlw2   1/1     Running   0          13s
+    annonces-7686f7d5d9-v7jnx   1/1     Running   0          110s
+  OK     le pod supprimé a disparu, deux pods sont prêts : 0 2
+    durée : 13 s
+
+=== Fin : 0 écart(s)
+Durée technique totale, sans la parole : 15 s
+À montrer ensuite dans le navigateur : la dernière exécution du pipeline et le tableau de bord de SonarQube Cloud.

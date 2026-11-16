@@ -533,6 +533,17 @@ Depuis la racine du dépôt. Commandes exécutées avec succès le 16 novembre 2
 | Protection de `main` | `gh api repos/laugy963/Projet-Indiv-assurer-superviser-dev-app/branches/main/protection` |
 | Exécutions du scan planifié | `gh run list --workflow scan-planifie.yml` |
 
-## 14. Suite
+## 14. Après la fusion
+
+| Point | Réalisation | Preuve |
+|---|---|---|
+| Pipeline sur la pull request n° 5 | Trois exécutions, toutes réussies, en 5 min 0 s à 5 min 29 s. Aucun constat de SonarQube Cloud sur les 178 lignes nouvelles | Exécutions 43841080783, 43841957924, 43879185670 |
+| Fusion | Pull request n° 5 fusionnée le 16 novembre 2026, après validation de l'étape, par un commit de fusion | Commit `1ed324d` |
+| Pipeline sur `main` | Déclenché par la fusion : 10 jobs réussis en 5 min 56 s | [Exécution 43880172545](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/actions/runs/43880172545) |
+| Quality gate de `main` | Tenu : 0 bug, 0 vulnérabilité, 0 défaut de maintenabilité, dette 0,0 %, couverture 92,5 %, duplication 0,0 % | SonarQube Cloud, analyse du commit `1ed324d` |
+
+Cette section a été ajoutée par la pull request de l'étape 9 : `main` est protégée.
+
+## 15. Suite
 
 L'étape 9 prépare la soutenance. Elle reprendra de cet audit la matrice du paragraphe 7, les deux risques critiques et les six actions du jalon J1.

@@ -1,4 +1,4 @@
-=== Vérification du prototype déployé — 2026-11-15 17:47:01
+=== Vérification du prototype déployé — 2026-11-16 15:00:52
 Cluster : v1.35.5+k3s1, nœud arm64
 Images : ghcr.io/laugy963/epouvante-annonces@sha256:796878c39f8e46a83d637d890c1bf35c6f529a4694a6ea4ed81e52559d4d3876  ghcr.io/laugy963/epouvante-notifications@sha256:1e8106f0cac2f445784884c44eae1f484106003386c94158a2efcfa386c9d302  
 
@@ -12,8 +12,8 @@ Images : ghcr.io/laugy963/epouvante-annonces@sha256:796878c39f8e46a83d637d890c1b
   RÉUSSI  ressources de notifications : réservées et plafonnées : {"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"128Mi"}}
   RÉUSSI  le HPA de notifications mesure le processeur : oui
     NAME            REFERENCE                  TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
-    annonces        Deployment/annonces        cpu: 11%/70%   2         4         2          4h32m
-    notifications   Deployment/notifications   cpu: 15%/70%   2         4         2          4h32m
+    annonces        Deployment/annonces        cpu: 9%/70%    2         4         2          25h
+    notifications   Deployment/notifications   cpu: 10%/70%   2         4         2          25h
 
 --- 2. HTTPS : redirection, certificat émis par cert-manager
   RÉUSSI  requête HTTP : redirigée vers HTTPS : 301 https://api.epouvante.localhost/api/annonces
@@ -65,7 +65,7 @@ Certificat présenté par Traefik pour api.epouvante.localhost :
   RÉUSSI  keycloak -> rabbitmq:5672 (interdit) : refusee
   RÉUSSI  pod d'un autre espace de noms -> postgresql:5432 (interdit) : refusee
 Règle posée par k3s au bout de la chaîne de pare-feu d'un pod :
-    -m comment --comment "rule to REJECT traffic destined for POD name:notifications-566875db78-p6cff namespace: epouvante" -m mark ! --mark 0x10000/0x10000 -j REJECT --reject-with icmp-port-unreachable
+    -m comment --comment "rule to REJECT traffic destined for POD name:notifications-79f644777-7l9ll namespace: epouvante" -m mark ! --mark 0x10000/0x10000 -j REJECT --reject-with icmp-port-unreachable
 
 --- 7. Observabilité : Prometheus collecte chaque pod
   RÉUSSI  pods annonces collectés par Prometheus, au moins 2 : oui
@@ -79,7 +79,7 @@ Pods de l'espace de noms monitoring :
     supervision-operator-d5869f86f-sxt78  1/1  Running
 
 --- 8. Perte d'un pod : le service continue, le pod est remplacé, le nouveau pod est collecté
-Pod supprimé : annonces-8db84c4d-mcsdd. 60 appels à GET /api/annonces pendant son remplacement :
+Pod supprimé : annonces-7686f7d5d9-6gbvp. 60 appels à GET /api/annonces pendant son remplacement :
 Codes reçus : 60 × 401  
   RÉUSSI  réponses autres que celle attendue (401, sans jeton) pendant le remplacement : 0
   RÉUSSI  pods annonces prêts après le remplacement, au moins 2 : oui
@@ -88,25 +88,25 @@ Codes reçus : 60 × 401
 
 --- Mémoire et processeur (kubectl top, mesure instantanée)
     NAME                     CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
-    k3d-epouvante-server-0   1391m        17%      2463Mi          62%         
+    k3d-epouvante-server-0   1456m        18%      2473Mi          63%         
     NAMESPACE      NAME                                              CPU(cores)   MEMORY(bytes)   
-    epouvante      keycloak-6db5d7d646-r9qs9                         31m          644Mi           
-    epouvante      postgresql-0                                      36m          152Mi           
-    monitoring     prometheus-supervision-prometheus-0               40m          123Mi           
-    epouvante      rabbitmq-0                                        21m          96Mi            
-    epouvante      notifications-566875db78-mwl97                    30m          66Mi            
-    epouvante      annonces-8db84c4d-2vpb7                           230m         65Mi            
-    kube-system    traefik-5f7d47cf7d-xfhw7                          95m          65Mi            
-    epouvante      annonces-8db84c4d-sb8cm                           53m          63Mi            
-    epouvante      notifications-566875db78-p6cff                    41m          55Mi            
-    cert-manager   cert-manager-cainjector-5d85cc9c99-q4hcn          5m           44Mi            
-    cert-manager   cert-manager-7b64759498-qd542                     10m          41Mi            
-    kube-system    metrics-server-786d997795-56l6k                   23m          35Mi            
-    monitoring     supervision-operator-d5869f86f-sxt78              24m          33Mi            
-    kube-system    coredns-8db54c48d-hm2wm                           16m          31Mi            
-    monitoring     supervision-kube-state-metrics-6bf7f85c59-vphkb   26m          29Mi            
-    cert-manager   cert-manager-webhook-674b6c7468-8xnxd             7m           16Mi            
-    kube-system    local-path-provisioner-5d9d9885bc-9htbq           2m           13Mi            
+    epouvante      keycloak-6db5d7d646-2ddrk                         35m          494Mi           
+    monitoring     prometheus-supervision-prometheus-0               61m          108Mi           
+    epouvante      rabbitmq-0                                        26m          90Mi            
+    monitoring     supervision-operator-d5869f86f-sxt78              21m          78Mi            
+    monitoring     supervision-kube-state-metrics-6bf7f85c59-vphkb   7m           65Mi            
+    epouvante      postgresql-0                                      23m          60Mi            
+    epouvante      notifications-79f644777-8926l                     40m          60Mi            
+    epouvante      annonces-7686f7d5d9-qt5cj                         36m          59Mi            
+    epouvante      notifications-79f644777-7l9ll                     38m          57Mi            
+    epouvante      annonces-7686f7d5d9-v7jnx                         75m          57Mi            
+    kube-system    metrics-server-786d997795-56l6k                   38m          53Mi            
+    kube-system    coredns-8db54c48d-hm2wm                           11m          50Mi            
+    cert-manager   cert-manager-7b64759498-sqjcx                     3m           47Mi            
+    kube-system    traefik-5f7d47cf7d-xfhw7                          37m          39Mi            
+    cert-manager   cert-manager-cainjector-5d85cc9c99-qhhxw          6m           30Mi            
+    cert-manager   cert-manager-webhook-674b6c7468-vq6sl             5m           25Mi            
+    kube-system    local-path-provisioner-5d9d9885bc-9htbq           3m           15Mi            
     kube-system    svclb-traefik-bd6fe22e-q5n7k                      0m           0Mi             
 
 BILAN : tous les contrôles sont réussis
