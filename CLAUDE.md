@@ -24,6 +24,7 @@ Soutenance les 13 et 14 avril 2027 : 20 min de présentation + 15 min de questio
 - `docs/05-developpement-poc.md` — prototype réalisé : versions figées, structure, traçabilité critères → tests, résultats, écarts avec l'architecture (paragraphe 10), difficultés, limites (paragraphe 12)
 - `docs/06-pipeline-ci-cd.md` — pipeline réalisé : jobs et durées, exécutions de référence, indicateurs mesurés, écarts avec le schéma de l'étape 2, sécurité du pipeline, difficultés, limites
 - `docs/07-deploiement-observabilite-charge.md` — déploiement réalisé : objets, sondes, HPA, règles réseau ; vérification (49 contrôles) ; supervision ; trois exécutions du test de charge, I2 et I4 mesurés, cinq défauts révélés (paragraphe 8.8) ; difficultés ; limites (paragraphe 12)
+- `docs/08-audit-et-remediation.md` — audit : méthode (ISO 27005, échelles et matrice du cours), résultats analysés, inventaire de sécurité du 16 novembre 2026, 23 constats sur la première version (C1 à C23), 12 risques du parc existant déduits du contexte (S1 à S12), matrice (paragraphe 7), plan priorisé de 36 actions par jalons J1 à J4 (paragraphe 8), limites (paragraphe 12)
 - `docs/experimentations/README.md` — synthèse du bac à sable : résultats, mémoire mesurée, règles techniques à appliquer aux étapes 5 et 7 (paragraphe 5) ; un protocole par expérimentation à côté
 - `docs/adr/README.md` — index et statut des fiches de décision (ADR) ; détail dans `docs/adr/NNNN-*.md`
 - `docs/retroplanning.md` — calendrier, marges, échéances bloquantes
@@ -38,7 +39,7 @@ Avancement : ne pas le déduire de ce fichier. Le lire dans `README.md` (tableau
 - `libs/socle/` — code technique commun (garde d'accès, erreurs, validation, réglages, démarrage) et outils de test ; aucune règle métier (ADR 0012)
 - `deploy/k3d/` — cluster local (étape 4) ; `deploy/keycloak/` — royaume versionné
 - `deploy/k8s/` — déploiement (étape 7) : `base/` et `overlays/local/` (Kustomize), `deployer.sh`, `verifier.sh`, `acces.sh`, `observabilite/` (Prometheus, Grafana) ; mode d'emploi dans `deploy/k8s/README.md`
-- `tests/environnement/` — environnement de test Docker Compose ; `tests/acceptation/` ; `tests/resultats/` — sorties brutes, la preuve ; `tests/securite/analyses.sh` — Gitleaks, Semgrep, Trivy, même commande sur le poste et dans le pipeline ; `tests/charge/` — scénario k6 et son lanceur (étape 7)
+- `tests/environnement/` — environnement de test Docker Compose ; `tests/acceptation/` ; `tests/resultats/` — sorties brutes, la preuve ; `tests/securite/analyses.sh` — Gitleaks, Semgrep, Trivy, même commande sur le poste et dans le pipeline ; `tests/securite/audit.sh` — inventaire de l'audit (étape 8), images tierces comprises ; `tests/charge/` — scénario k6 et son lanceur (étape 7)
 - `sandbox/` — un sous-dossier rejouable par expérimentation (étape 4)
 - `.github/workflows/` — `pipeline.yml` (pull request et `main` : temps 1 à 3 du schéma ; temps 4 à l'étape 7), `scan-planifie.yml` (chaque nuit) ; à la racine, `sonar-project.properties` et `.trivyignore` (risques acceptés, datés)
 - `Contexte et Consigne - Indiv/` — sources officielles (PDF, XLSX), synthétisées dans `.claude/docs/` ; ne relire l'original qu'en cas de doute
@@ -87,6 +88,7 @@ Ajouter ici les commandes de déploiement dès qu'elles existent et ont été ex
   Grafana : `kubectl -n monitoring scale deploy supervision-grafana --replicas=1` puis `kubectl -n monitoring port-forward svc/supervision-grafana 3000:80` ; le refermer par `--replicas=0`.
   Captures du tableau de bord, sans affichage (Chrome et Node.js) : `deploy/k8s/observabilite/capturer.sh <début> <fin> docs/captures <préfixe>`, heures locales au format `2026-11-15T16:55` ; à faire dans les 24 heures que garde Prometheus.
   Avant un test de charge : arrêter les autres conteneurs Docker, refermer Grafana, ne rien lancer d'autre sur le poste. Ne pas relever l'état du broker par `rabbitmqctl` pendant un test : la commande fausse la mesure.
+- Audit, détail dans `docs/08-audit-et-remediation.md` (exécutée le 16 novembre 2026) : inventaire de sécurité `tests/securite/audit.sh` (50 s ; Docker et `jq` ; cluster arrêté) ; il réécrit `tests/resultats/audit-securite.txt`. Il compte toutes les gravités et n'échoue pas sur un constat : ce n'est pas un contrôle du pipeline.
 - Cluster local k3d, détail dans `deploy/k3d/README.md` (exécutées le 13 novembre 2026) :
   créer `k3d cluster create --config deploy/k3d/cluster.yaml` ; relancer ou arrêter `k3d cluster start epouvante`, `k3d cluster stop epouvante` ; accès `source deploy/k3d/env.sh` avant tout `kubectl` ou `helm` (fichier d'accès propre au projet, `~/.kube/config` n'est pas utilisé).
   Arrêter le cluster après usage : il occupe environ 2 Gio sur les 3,83 Gio du moteur Docker. Après un `start`, compter 4 à 5 minutes avant que tous les pods soient prêts.

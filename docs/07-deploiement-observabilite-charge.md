@@ -1,7 +1,7 @@
 # Étape 7 — Déploiement, observabilité, charge
 
 - Date : 15 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 16 novembre 2026
 - Références : [architecture, paragraphes 8 à 10](03-architecture.md), [indicateurs I2 et I4](02-processus-developpement.md#2-indicateurs-de-qualité), [pipeline](06-pipeline-ci-cd.md)
 - Fichiers : [deploy/k8s/](../deploy/k8s/README.md), [tests/charge/](../tests/README.md#test-de-charge)
 - Décision prise à cette étape : fiche [0017](adr/0017-manifestes-et-kustomize.md)
@@ -557,7 +557,7 @@ Avant un test de charge sur le poste : fermer les applications inutiles, arrête
 
 Les images de `main` ne sont pas celles qui tournent sur le cluster : il porte encore celles du commit `9d094de` (paragraphe 4.2), au même code de service. Les redéployer est une commande : `IMAGE_ANNONCES=… IMAGE_NOTIFICATIONS=… deploy/k8s/deployer.sh`.
 
-L'étape reste en attente de validation. Cette section a elle-même été ajoutée par une pull request de clôture : `main` est protégée.
+Cette section a elle-même été ajoutée par une pull request de clôture (n° 4) : `main` est protégée. L'étape a été validée le 16 novembre 2026, et cette pull request fusionnée le même jour par le commit de fusion `ed00682`.
 
 ## 15. Suite
 
