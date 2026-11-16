@@ -192,9 +192,14 @@ if kubectl get namespace monitoring >/dev/null 2>&1; then
   done
   verdict "la publication du volet 4 est comptée (POST /api/annonces, code 201)" "$(au_moins "$(prom "$PUBLICATIONS")" 1)" "oui"
   # Un taux se calcule sur deux mesures au moins : après un déploiement, il faut deux collectes des nouveaux pods.
+  # Et il est nul si rien n'a bougé entre ces deux mesures : sur des pods neufs ou un cluster qui vient de démarrer,
+  # les appels des volets 2 à 4 tombent le plus souvent dans une seule collecte, et le centile ne se calcule pas
+  # (constaté le 16 novembre 2026, à la répétition de la démonstration). On entretient donc un trafic léger pendant
+  # l'attente : des appels sans jeton, que la mesure compte puisqu'elle est placée avant la garde d'accès.
   CENTILE='histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="epouvante"}[5m])))'
   for _ in $(seq 1 30); do
     [[ "$(prom "$CENTILE")" =~ ^[0-9.]+$ ]] && break
+    code "$URL_API/api/annonces" >/dev/null
     sleep 3
   done
   verdict "le temps de réponse au 95e centile se calcule (indicateur I2)" \
