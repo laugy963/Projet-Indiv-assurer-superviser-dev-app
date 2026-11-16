@@ -21,7 +21,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 5 | Développement du prototype | Terminée |
 | 6 | Pipeline CI/CD | Terminée |
 | 7 | Déploiement, observabilité, charge | Terminée |
-| 8 | Audit et remédiation | En attente de validation |
+| 8 | Audit et remédiation | Terminée |
 | 9 | Soutenance | À faire |
 
 ## Arborescence

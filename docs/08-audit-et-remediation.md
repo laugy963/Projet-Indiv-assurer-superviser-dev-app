@@ -1,10 +1,10 @@
 # Étape 8 — Audit de sécurité et plan de remédiation
 
 - Date : 16 novembre 2026
-- Statut : en attente de validation
+- Statut : validé le 16 novembre 2026
 - Références : [analyse de risques de l'étape 3](03-architecture.md#83-analyse-de-risques), [limites du prototype](05-developpement-poc.md), [limites du pipeline](06-pipeline-ci-cd.md), [test de charge et limites du déploiement](07-deploiement-observabilite-charge.md)
 - Fichiers : [audit.sh](../tests/securite/audit.sh), [analyses.sh](../tests/securite/analyses.sh)
-- Preuve : [audit-securite.txt](../tests/resultats/audit-securite.txt), inventaire de sécurité rejoué le 16 novembre 2026 ; [pull request n° 5](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/5), en brouillon jusqu'à la validation de l'étape
+- Preuve : [audit-securite.txt](../tests/resultats/audit-securite.txt), inventaire de sécurité rejoué le 16 novembre 2026 ; [pull request n° 5](https://github.com/laugy963/Projet-Indiv-assurer-superviser-dev-app/pull/5)
 - Décision prise à cette étape : aucune fiche. L'audit ne change pas l'architecture ; chaque changement proposé est une action du plan, à décider à son échéance
 
 ## 1. Objet
@@ -157,7 +157,7 @@ Réglages du dépôt, lus par l'API de GitHub le 16 novembre :
 | Protection de `main` | Pull request obligatoire, 10 contrôles exigés, branche à jour, règle appliquée à l'administrateur ; 0 approbation exigée ; signature des commits non exigée |
 | Détection de secrets par GitHub, blocage au push | Activés ; aucune alerte |
 | Alertes Dependabot (alertes de GitHub sur les dépendances vulnérables) | Désactivées |
-| Scan planifié, prévu à 3 h 23 UTC | Le 15 novembre : déclenché à 11 h 13 UTC, soit 7 h 50 de retard. Le 16 novembre : pas encore déclenché à 9 h 34 UTC |
+| Scan planifié, prévu à 3 h 23 UTC | Le 15 novembre : déclenché à 11 h 13 UTC, soit 7 h 50 de retard. Le 16 novembre : déclenché à 11 h 44 UTC, soit 8 h 21 de retard |
 
 La documentation de GitHub, consultée le 16 novembre, prévient qu'un workflow planifié peut être retardé ou abandonné quand la charge est forte, et qu'il est désactivé après 60 jours sans activité sur un dépôt public.
 
@@ -239,7 +239,7 @@ Chaîne d'approvisionnement : tout ce que le projet ne produit pas lui-même, ma
 | # | Constat | Preuve | P | I | Niveau |
 |---|---|---|---|---|---|
 | C10 | Images tierces hors de tout contrôle automatique | Inventaire : PostgreSQL, 1 critique et 25 hautes ; Keycloak, 6 hautes. Atténuation : `gosu` n'est pas exécuté | Élevée | Modéré | Élevé |
-| C11 | Veille incomplète : alertes Dependabot désactivées, scan planifié en retard de 7 h 50, désactivable par GitHub après 60 jours ; mises à jour manuelles | API de GitHub, 16 novembre | Moyenne | Modéré | Modéré |
+| C11 | Veille incomplète : alertes Dependabot désactivées, scan planifié en retard de 7 h 50 puis de 8 h 21, désactivable par GitHub après 60 jours ; mises à jour manuelles | API de GitHub, 15 et 16 novembre | Moyenne | Modéré | Modéré |
 | C12 | Image de base et images tierces désignées par une étiquette, que son éditeur peut déplacer ; une vulnérabilité moyenne de `zlib` dans les 4 variantes | `services/Dockerfile`, manifestes ; inventaire | Faible | Élevé | Modéré |
 | C13 | Ni inventaire des composants, ni signature des images ; images des pull requests publiques, jamais nettoyées | Étape 6, paragraphe 11. Leur nombre n'a pas pu être relevé : le jeton du poste n'a pas le droit de lire les paquets | Faible | Modéré | Faible |
 | C14 | Dépendances de développement : 4 vulnérabilités moyennes, sans correctif applicable | Inventaire. `npm audit` propose un retour à Jest 25, soit cinq versions majeures en arrière | Faible | Faible | Faible |
