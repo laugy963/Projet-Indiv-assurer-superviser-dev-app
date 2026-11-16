@@ -21,12 +21,13 @@ Chaque test d'intégration ou d'acceptation porte dans son titre l'identifiant d
 | `acceptation/src/` | Scénarios du backlog. Ils ne connaissent que des adresses HTTP et des comptes : ni base, ni broker |
 | `indicateur-i1.mjs` | Calcule l'indicateur I1 à partir des rapports de Jest |
 | `securite/analyses.sh` | Contrôles de sécurité du pipeline, rejouables sur le poste : Gitleaks, Semgrep, Trivy (fiche 0016) |
+| `securite/audit.sh` | Inventaire de l'audit (étape 8) : rejoue ces contrôles, y ajoute les images tierces du déploiement, compte toutes les gravités, écrit la preuve |
 | `rejouer.sh` | Rejoue tous les tests et enregistre leur sortie brute |
 | `charge/scenario.js` | Scénario k6 : paliers de charge, seuils des indicateurs I2 et I4, mesure du délai de notification |
 | `charge/lancer.sh` | Lance k6 en conteneur, relève la mise à l'échelle toutes les 10 secondes, écrit la preuve |
 | `charge/comptes.sh` | Crée dans Keycloak un compte par utilisateur virtuel |
 | `charge/exporter-supervision.sh` | Exporte de Prometheus ce que la supervision a vu pendant un test : Prometheus ne garde que 24 heures |
-| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) |
+| `resultats/` | Sortie brute de la dernière exécution : c'est la preuve. `deploiement.txt` et `charge-*.txt` viennent du cluster (étape 7) ; `audit-securite.txt`, de l'inventaire de l'audit (étape 8) |
 
 ## Rejouer
 
@@ -85,3 +86,11 @@ tests/securite/analyses.sh image epouvante/annonces:local   # Trivy : tout le co
 ```
 
 Le code de sortie est 0 si rien n'est à signaler. Les rapports complets sont écrits dans `reports/securite/`, non versionné. Un risque accepté s'inscrit dans `.trivyignore`, à la racine, avec son auteur, sa raison et sa date d'expiration.
+
+Inventaire de l'audit, exécuté avec succès le 16 novembre 2026 (50 secondes ; prérequis : Docker et `jq`) :
+
+```bash
+tests/securite/audit.sh   # tous les contrôles, plus les images de PostgreSQL, RabbitMQ et Keycloak ; écrit resultats/audit-securite.txt
+```
+
+Il ne remplace pas le pipeline : le pipeline bloque sur « haute ou critique, avec correctif », l'inventaire compte tout. Un constat ne le fait pas échouer ; un contrôle qui n'a écrit aucun rapport, si. Analyse : [audit et plan de remédiation](../docs/08-audit-et-remediation.md).

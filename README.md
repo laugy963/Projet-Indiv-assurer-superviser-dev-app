@@ -20,8 +20,8 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 | 4 | Bac à sable | Terminée |
 | 5 | Développement du prototype | Terminée |
 | 6 | Pipeline CI/CD | Terminée |
-| 7 | Déploiement, observabilité, charge | En attente de validation |
-| 8 | Audit et remédiation | À faire |
+| 7 | Déploiement, observabilité, charge | Terminée |
+| 8 | Audit et remédiation | En attente de validation |
 | 9 | Soutenance | À faire |
 
 ## Arborescence
@@ -42,8 +42,8 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 ├── tests/
 │   ├── environnement/     environnement de test Docker Compose (étape 5)
 │   ├── acceptation/       tests d'acceptation du backlog (étape 5)
-│   ├── resultats/         sortie brute de la dernière exécution des tests (étapes 5 et 7)
-│   ├── securite/          contrôles de sécurité du pipeline, rejouables sur le poste (étape 6)
+│   ├── resultats/         sortie brute de la dernière exécution des tests et des contrôles (étapes 5, 7 et 8)
+│   ├── securite/          contrôles de sécurité du pipeline, rejouables sur le poste (étape 6) ; inventaire de l'audit (étape 8)
 │   └── charge/            scénario de test de charge k6 et son lanceur (étape 7)
 ├── sandbox/               code et configuration des expérimentations (étape 4)
 └── docs/
@@ -55,6 +55,7 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
     ├── 05-developpement-poc.md         prototype réalisé, critères prouvés, difficultés, limites
     ├── 06-pipeline-ci-cd.md            pipeline réalisé, exécutions de référence, écarts, limites
     ├── 07-deploiement-observabilite-charge.md   déploiement Kubernetes, supervision, test de charge, limites
+    ├── 08-audit-et-remediation.md      résultats analysés, constats, risques du parc existant, plan priorisé
     ├── retroplanning.md   calendrier jusqu'à la soutenance
     ├── journal.md         journal de bord (actions, résultats, problèmes)
     ├── adr/               fiches de décision d'architecture
@@ -75,9 +76,10 @@ La Petite Maison de l'Épouvante veut remplacer son site vitrine par une platefo
 7. [Développement du prototype](docs/05-developpement-poc.md), avec les [tests et leurs preuves](tests/README.md)
 8. [Pipeline CI/CD](docs/06-pipeline-ci-cd.md), avec ses fichiers dans [.github/workflows/](.github/workflows/)
 9. [Déploiement, observabilité, charge](docs/07-deploiement-observabilite-charge.md), avec les [manifestes et scripts](deploy/k8s/README.md)
-10. [Fiches de décision](docs/adr/README.md)
-11. [Rétroplanning](docs/retroplanning.md)
-12. [Journal de bord](docs/journal.md)
+10. [Audit de sécurité et plan de remédiation](docs/08-audit-et-remediation.md), avec sa [preuve](tests/resultats/audit-securite.txt)
+11. [Fiches de décision](docs/adr/README.md)
+12. [Rétroplanning](docs/retroplanning.md)
+13. [Journal de bord](docs/journal.md)
 
 ## Règle de sécurité du dépôt
 
